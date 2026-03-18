@@ -1,0 +1,37 @@
+# docker-compose.yml — local development only
+# Not used in production (AKS handles orchestration)
+# Provides: API + local Ollama (ADR-001: provider-agnostic)
+
+services:
+  api:
+    build:
+      context: .
+      target: production
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - ENVIRONMENT=commercial
+    volumes:
+      - ./eval:/app/eval          # mount eval harness for local runs
+      - ./release_records:/app/release_records
+    depends_on:
+      - ollama
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    profiles:
+      - local-llm   # only starts with: docker compose --profile local-llm up
+
+volumes:
+  ollama_data:

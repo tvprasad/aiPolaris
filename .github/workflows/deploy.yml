@@ -1,0 +1,54 @@
+name: Deploy to Azure Container Apps
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+
+env:
+  ACR_NAME: meridian
+  CONTAINER_APP_NAME: aipolaris-api
+  RESOURCE_GROUP: meridian-rg
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Build and push to ACR
+        run: |
+          az acr login --name ${{ env.ACR_NAME }}
+          IMAGE="${{ env.ACR_NAME }}.azurecr.io/aipolaris:${{ github.sha }}"
+          docker build -t "$IMAGE" .
+          docker push "$IMAGE"
+
+      - name: Update Container App revision
+        run: |
+          az containerapp update \
+            --name ${{ env.CONTAINER_APP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --image "${{ env.ACR_NAME }}.azurecr.io/aipolaris:${{ github.sha }}"
+
+      - name: Verify deployment
+        run: |
+          FQDN=$(az containerapp show \
+            --name ${{ env.CONTAINER_APP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --query "properties.configuration.ingress.fqdn" -o tsv)
+          echo "Deployed to: https://$FQDN"
+          curl -sf "https://$FQDN/health" || (echo "Health check failed" && exit 1)

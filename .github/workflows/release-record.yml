@@ -1,0 +1,31 @@
+name: Release Record
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  generate-release-record:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -e ".[dev]"
+
+      - name: Generate immutable release record (NIST AU-2, CM-3)
+        env:
+          GIT_SHA: ${{ github.sha }}
+          DEPLOYED_BY: ${{ github.actor }}
+          ENVIRONMENT: commercial
+        run: python scripts/generate_release_record.py
+
+      - name: Commit release record
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add release_records/
+          git diff --staged --quiet || git commit -m "chore: release record ${{ github.sha }}"
+          git push

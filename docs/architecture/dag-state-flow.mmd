@@ -1,0 +1,34 @@
+---
+title: "aiPolaris DAG -- State Flow"
+config:
+  theme: dark
+---
+graph TD
+    START([POST /query]):::entry
+    AUTH[Auth Middleware<br/>Bearer token validation]
+    RBAC[RBAC Middleware<br/>Capability check]
+    INIT[Create AgentState<br/>query + session_context + trace_id]
+
+    P[Planner<br/>tools: none]:::planner
+    R[Retriever<br/>tools: ai_search_read]:::retriever
+    S[Synthesizer<br/>tools: none]:::synthesizer
+
+    STREAM([StreamingResponse<br/>SSE tokens + citations]):::exit
+
+    START --> AUTH --> RBAC --> INIT
+
+    INIT -->|"query, session_context"| P
+    P -->|"+ sub_tasks"| R
+    R -->|"+ retrieved_chunks"| S
+    S -->|"+ answer, citations"| STREAM
+
+    P -.-|"append StepRecord"| TRACE[(trace.step_log)]:::trace
+    R -.-|"append StepRecord"| TRACE
+    S -.-|"append StepRecord"| TRACE
+
+    classDef entry fill:#2d2d2d,stroke:#666,color:#ccc
+    classDef exit fill:#2d2d2d,stroke:#666,color:#ccc
+    classDef planner fill:#1a3a5c,stroke:#185FA5,color:#ccc
+    classDef retriever fill:#1a3a5c,stroke:#185FA5,color:#ccc
+    classDef synthesizer fill:#1a3a5c,stroke:#185FA5,color:#ccc
+    classDef trace fill:#3a2a1a,stroke:#b58900,color:#ccc

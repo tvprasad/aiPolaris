@@ -1,0 +1,51 @@
+# .github/labels.yml
+# Apply with: gh label import .github/labels.yml
+# or: npx github-label-sync --access-token $GH_TOKEN --labels .github/labels.yml tvprasad/[repo]
+
+- name: "adr"
+  color: "534AB7"
+  description: "Architecture Decision Record — requires CLAUDE.md update"
+
+- name: "security"
+  color: "A32D2D"
+  description: "Security-critical — run /challenge-security before merge"
+
+- name: "gcch"
+  color: "185FA5"
+  description: "GCCH deployment impact — run /gcch-check"
+
+- name: "eval"
+  color: "0F6E56"
+  description: "Eval harness — golden questions, metrics, thresholds"
+
+- name: "pipeline"
+  color: "854F0B"
+  description: "Data pipeline — Graph API, ADLS, chunking, indexing"
+
+- name: "agent"
+  color: "3B6D11"
+  description: "Agent layer — LangGraph nodes, state, manifests"
+
+- name: "infra"
+  color: "5F5E5A"
+  description: "Terraform, CI/CD, Docker, Makefile"
+
+- name: "compliance"
+  color: "993C1D"
+  description: "NIST 800-53 / FedRAMP / ATO evidence artifact"
+
+- name: "gap"
+  color: "E24B4A"
+  description: "Eval gap — incorrect refusal or latency outlier to fix"
+
+- name: "breaking"
+  color: "A32D2D"
+  description: "Breaking change — requires ADR and release note"
+
+- name: "good first issue"
+  color: "9FE1CB"
+  description: "Good starting point for new contributors"
+
+- name: "wont-fix"
+  color: "D3D1C7"
+  description: "Acknowledged, not fixing in this version"

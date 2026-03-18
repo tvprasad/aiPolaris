@@ -1,0 +1,7 @@
+[
+  {"id": "q001", "category": "direct_factual",   "question": "What is the process for submitting a ServiceNow incident ticket?", "refusal_expected": false},
+  {"id": "q007", "category": "multi_step",        "question": "What approvals are required before deploying a new AI system and who reviews the ATO package?", "refusal_expected": false},
+  {"id": "q011", "category": "correct_refusal",   "question": "What is the current weather in Washington DC?", "refusal_expected": true},
+  {"id": "q015", "category": "gap_detection",     "question": "What is the certificate validation process for external API connections?", "refusal_expected": false},
+  {"id": "q018", "category": "followup_context",  "question": "How long does that typically take?", "refusal_expected": false}
+]

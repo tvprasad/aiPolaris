@@ -1,0 +1,162 @@
+[
+  {
+    "id": "q001",
+    "category": "direct_factual",
+    "question": "What is the process for submitting a ServiceNow incident ticket?",
+    "expected_behavior": "Returns a clear step-by-step answer with citation",
+    "refusal_expected": false,
+    "notes": "Tests basic RAG quality on procedural content"
+  },
+  {
+    "id": "q002",
+    "category": "direct_factual",
+    "question": "Who is the approver for software deployment requests?",
+    "expected_behavior": "Returns named role or person with citation",
+    "refusal_expected": false,
+    "notes": "Tests retrieval of org-specific information"
+  },
+  {
+    "id": "q003",
+    "category": "direct_factual",
+    "question": "What are the data retention requirements for CUI documents?",
+    "expected_behavior": "Returns specific retention period with citation",
+    "refusal_expected": false,
+    "notes": "Tests compliance-specific content retrieval"
+  },
+  {
+    "id": "q004",
+    "category": "direct_factual",
+    "question": "What VPN client is approved for remote access?",
+    "expected_behavior": "Returns specific product name with citation",
+    "refusal_expected": false,
+    "notes": "Tests IT policy retrieval"
+  },
+  {
+    "id": "q005",
+    "category": "direct_factual",
+    "question": "What is the maximum file size for SharePoint uploads?",
+    "expected_behavior": "Returns specific size limit with citation",
+    "refusal_expected": false,
+    "notes": "Tests specific technical policy retrieval"
+  },
+  {
+    "id": "q006",
+    "category": "direct_factual",
+    "question": "How do I request access to a classified SharePoint site?",
+    "expected_behavior": "Returns access request process with citation",
+    "refusal_expected": false,
+    "notes": "Tests process documentation retrieval"
+  },
+  {
+    "id": "q007",
+    "category": "multi_step",
+    "question": "What approvals are required before deploying a new AI system and who reviews the ATO package?",
+    "expected_behavior": "Synthesizes approval chain from multiple chunks",
+    "refusal_expected": false,
+    "notes": "Tests Planner sub-task decomposition across multiple sources"
+  },
+  {
+    "id": "q008",
+    "category": "multi_step",
+    "question": "How does the incident response process differ for CUI data vs general data breaches?",
+    "expected_behavior": "Compares two processes from different source documents",
+    "refusal_expected": false,
+    "notes": "Tests cross-document synthesis"
+  },
+  {
+    "id": "q009",
+    "category": "multi_step",
+    "question": "What are the onboarding steps for a new contractor and which systems require separate access requests?",
+    "expected_behavior": "Ordered list synthesized from multiple HR and IT documents",
+    "refusal_expected": false,
+    "notes": "Tests multi-document sequential reasoning"
+  },
+  {
+    "id": "q010",
+    "category": "multi_step",
+    "question": "What security controls apply to mobile devices and how do they differ from workstation requirements?",
+    "expected_behavior": "Comparison synthesized from security policy documents",
+    "refusal_expected": false,
+    "notes": "Tests comparative reasoning across policy documents"
+  },
+  {
+    "id": "q011",
+    "category": "correct_refusal",
+    "question": "What is the current weather in Washington DC?",
+    "expected_behavior": "Clean refusal — out of scope, not in knowledge base",
+    "refusal_expected": true,
+    "notes": "Real-time data — correct refusal expected"
+  },
+  {
+    "id": "q012",
+    "category": "correct_refusal",
+    "question": "What is the stock price of Microsoft today?",
+    "expected_behavior": "Clean refusal — financial data not in knowledge base",
+    "refusal_expected": true,
+    "notes": "External data — correct refusal expected"
+  },
+  {
+    "id": "q013",
+    "category": "correct_refusal",
+    "question": "Write me a Python script to automate this process",
+    "expected_behavior": "Clean refusal — code generation outside RAG scope",
+    "refusal_expected": true,
+    "notes": "Out-of-scope request — correct refusal expected"
+  },
+  {
+    "id": "q014",
+    "category": "correct_refusal",
+    "question": "What did the CEO say in last week's all-hands meeting?",
+    "expected_behavior": "Refusal if meeting notes not ingested, or answer if they are",
+    "refusal_expected": true,
+    "notes": "Real-time org content — refusal expected unless indexed"
+  },
+  {
+    "id": "q015",
+    "category": "gap_detection",
+    "question": "What is the certificate validation process for external API connections?",
+    "expected_behavior": "SHOULD be answerable — tests chunking quality on technical docs",
+    "refusal_expected": false,
+    "notes": "Specific technical query — refusal here = chunking gap to fix"
+  },
+  {
+    "id": "q016",
+    "category": "gap_detection",
+    "question": "What are the specific NIST 800-171 controls required for CUI handling?",
+    "expected_behavior": "SHOULD be answerable if compliance docs are indexed",
+    "refusal_expected": false,
+    "notes": "Compliance-specific query — refusal here = indexing gap to fix"
+  },
+  {
+    "id": "q017",
+    "category": "followup_context",
+    "question": "What is the process for requesting elevated access?",
+    "expected_behavior": "Returns access request process — sets up follow-up",
+    "refusal_expected": false,
+    "notes": "Primary question — answer used as context for q018"
+  },
+  {
+    "id": "q018",
+    "category": "followup_context",
+    "question": "How long does that typically take?",
+    "expected_behavior": "Uses q017 session context to answer about access request timeline",
+    "refusal_expected": false,
+    "notes": "Follow-up — requires session_context from q017. Refusal = session memory gap."
+  },
+  {
+    "id": "q019",
+    "category": "followup_context",
+    "question": "What are the password requirements for system accounts?",
+    "expected_behavior": "Returns password policy with citation",
+    "refusal_expected": false,
+    "notes": "Primary question — sets up follow-up q020"
+  },
+  {
+    "id": "q020",
+    "category": "followup_context",
+    "question": "Can you give me an example of a compliant password?",
+    "expected_behavior": "Uses q019 context to generate example matching the policy",
+    "refusal_expected": false,
+    "notes": "Follow-up — mirrors Meridian's 54% refusal rate issue. Session memory fix target."
+  }
+]

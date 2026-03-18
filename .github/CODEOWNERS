@@ -1,0 +1,28 @@
+# CODEOWNERS
+# Defines required reviewers per path.
+# Federal compliance: every change to security-critical paths
+# requires explicit review — NIST SA-11, CM-3.
+# Format: [path] @[github-username]
+
+# Default owner — all files
+* @tvprasad
+
+# Security-critical paths — require explicit review
+# NIST SA-11: Developer Security Testing
+api/middleware/         @tvprasad
+agent/tools/manifests.py @tvprasad
+scripts/check_prompts.py @tvprasad
+scripts/check_endpoints.py @tvprasad
+
+# Infrastructure — Terraform changes require review
+# NIST CM-3: Configuration Change Control
+infra/                  @tvprasad
+.github/workflows/      @tvprasad
+
+# ADRs — architectural decisions require review
+docs/adr/               @tvprasad
+
+# Compliance artifacts — immutable, require review
+release_records/        @tvprasad
+prompts.lock            @tvprasad
+CLAUDE.md               @tvprasad

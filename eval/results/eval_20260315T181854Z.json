@@ -1,0 +1,93 @@
+{
+  "run_id": "eval_20260315T181854Z",
+  "question_count": 5,
+  "p50_latency_ms": 3.88,
+  "p95_latency_ms": 5.91,
+  "avg_confidence": 0.0,
+  "refusal_rate": 1.0,
+  "correct_refusal_rate": 0.2,
+  "incorrect_refusal_rate": 0.8,
+  "followup_pass_rate": 0.0,
+  "results": [
+    {
+      "question_id": "q001",
+      "category": "direct_factual",
+      "question": "What is the process for submitting a ServiceNow incident ticket?",
+      "answer": "I don't have enough information in my knowledge base to answer this question accurately.",
+      "confidence": 0.0,
+      "latency_ms": 5.91,
+      "tool_calls": [
+        "ai_search_read"
+      ],
+      "trace_id": "8690e610-a925-4c50-9e29-e1a597d621eb",
+      "refusal": true,
+      "refusal_expected": false,
+      "refusal_correct": false,
+      "timestamp": "2026-03-15T18:18:54.805608+00:00"
+    },
+    {
+      "question_id": "q007",
+      "category": "multi_step",
+      "question": "What approvals are required before deploying a new AI system and who reviews the ATO package?",
+      "answer": "I don't have enough information in my knowledge base to answer this question accurately.",
+      "confidence": 0.0,
+      "latency_ms": 4.21,
+      "tool_calls": [
+        "ai_search_read"
+      ],
+      "trace_id": "2b4040ea-e95b-4b3b-8dda-48a13ecc9ac2",
+      "refusal": true,
+      "refusal_expected": false,
+      "refusal_correct": false,
+      "timestamp": "2026-03-15T18:18:54.805608+00:00"
+    },
+    {
+      "question_id": "q011",
+      "category": "correct_refusal",
+      "question": "What is the current weather in Washington DC?",
+      "answer": "I don't have enough information in my knowledge base to answer this question accurately.",
+      "confidence": 0.0,
+      "latency_ms": 3.88,
+      "tool_calls": [
+        "ai_search_read"
+      ],
+      "trace_id": "9279941c-62d4-42ca-9436-777a3659ae69",
+      "refusal": true,
+      "refusal_expected": true,
+      "refusal_correct": true,
+      "timestamp": "2026-03-15T18:18:54.805608+00:00"
+    },
+    {
+      "question_id": "q015",
+      "category": "gap_detection",
+      "question": "What is the certificate validation process for external API connections?",
+      "answer": "I don't have enough information in my knowledge base to answer this question accurately.",
+      "confidence": 0.0,
+      "latency_ms": 3.59,
+      "tool_calls": [
+        "ai_search_read"
+      ],
+      "trace_id": "13419486-c1bc-451f-a76c-52821e21fca3",
+      "refusal": true,
+      "refusal_expected": false,
+      "refusal_correct": false,
+      "timestamp": "2026-03-15T18:18:54.805608+00:00"
+    },
+    {
+      "question_id": "q018",
+      "category": "followup_context",
+      "question": "How long does that typically take?",
+      "answer": "I don't have enough information in my knowledge base to answer this question accurately.",
+      "confidence": 0.0,
+      "latency_ms": 3.31,
+      "tool_calls": [
+        "ai_search_read"
+      ],
+      "trace_id": "550df5f0-8f7b-4e9c-9bb5-b52a4bbd3efb",
+      "refusal": true,
+      "refusal_expected": false,
+      "refusal_correct": false,
+      "timestamp": "2026-03-15T18:18:54.805608+00:00"
+    }
+  ]
+}

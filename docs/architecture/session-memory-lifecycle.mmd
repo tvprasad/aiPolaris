@@ -1,0 +1,39 @@
+---
+title: "aiPolaris -- Session Memory Lifecycle"
+config:
+  theme: dark
+---
+sequenceDiagram
+    participant Client
+    participant API as FastAPI Router
+    participant Store as SessionStore<br/>TTL=1800s
+    participant DAG as LangGraph DAG
+
+    Note over Client,DAG: First query -- no prior context
+    Client->>API: POST /query { query, session_id }
+    API->>Store: get(session_id)
+    Store-->>API: null (no prior session)
+    API->>DAG: invoke(query, session_context=null)
+    DAG-->>API: answer, citations, chunks
+    API->>Store: set(session_id, query, answer, chunks)
+    API-->>Client: StreamingResponse (tokens)
+
+    Note over Client,DAG: Follow-up query -- context injected
+    Client->>API: POST /query { "tell me more", session_id }
+    API->>Store: get(session_id)
+    Store-->>API: { last_query, last_answer, last_chunks }
+    API->>DAG: invoke(query, session_context={ prior answer + chunks })
+    Note over DAG: Planner sees prior context<br/>Synthesizer references prior answer
+    DAG-->>API: answer, citations, chunks
+    API->>Store: set(session_id, query, answer, chunks)
+    API-->>Client: StreamingResponse (tokens)
+
+    Note over Client,DAG: 30 minutes of inactivity
+    Store->>Store: _purge_expired()<br/>session evicted
+
+    Note over Client,DAG: Stale session -- clean slate
+    Client->>API: POST /query { "what about...", session_id }
+    API->>Store: get(session_id)
+    Store-->>API: null (expired)
+    API->>DAG: invoke(query, session_context=null)
+    Note over DAG: No cross-session leakage
