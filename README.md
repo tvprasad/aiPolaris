@@ -1,8 +1,18 @@
 # aiPolaris
 
+[![CI](https://github.com/tvprasad/aiPolaris/actions/workflows/ci.yml/badge.svg)](https://github.com/tvprasad/aiPolaris/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-0.1.0-green.svg)](https://github.com/tvprasad/aiPolaris/releases/tag/v0.1.0)
+[![Python](https://img.shields.io/badge/python-3.12-blue.svg)](https://python.org)
+[![Tests](https://img.shields.io/badge/tests-21_passing-brightgreen.svg)](tests/)
+[![LangChain](https://img.shields.io/badge/LangChain-LCEL-blueviolet.svg)](agent/nodes/planner.py)
+[![LangGraph](https://img.shields.io/badge/LangGraph-DAG-orange.svg)](agent/graph.py)
+[![ADRs](https://img.shields.io/badge/ADRs-10-orange.svg)](docs/adr/)
+[![GCCH](https://img.shields.io/badge/GCCH-ready-darkblue.svg)](infra/terraform/)
+
 Federal AI agent orchestration stalls on compliance gaps, audit failures,
 and capability boundaries that aren't enforced until production.
-aiPolaris prevents that — from the first commit.
+aiPolaris prevents that - from the first commit.
 
 > *AI systems fail from architectural ambiguity, not model weakness.*
 
