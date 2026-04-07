@@ -8,12 +8,79 @@ OWNERSHIP (ADR-004):
 
 CAPABILITY (ADR-002):
   allowed_tools: [] — operates on state only. No external calls.
+
+LLM LAYER:
+  Uses LangChain LCEL — ChatPromptTemplate | AzureChatOpenAI | JsonOutputParser.
+  LangGraph orchestrates the node. LangChain handles prompt templating and
+  structured output parsing within the node.
 """
 
 import time
+from pathlib import Path
+
+from langchain_core.output_parsers import JsonOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai import AzureChatOpenAI
 
 from agent.state import AgentState, StepRecord
-from agent.tools.manifests import SYNTHESIZER_MANIFEST
+from agent.tools.manifests import SYNTHESIZER_MANIFEST  # noqa: F401
+from api.config import get_settings
+
+_PROMPT_PATH = Path(__file__).parent.parent / "prompts" / "synthesizer_system.txt"
+_system_prompt: str | None = None
+
+_INSUFFICIENT = "I don't have enough information in my knowledge base to answer this question accurately."
+
+
+def _get_system_prompt() -> str:
+    global _system_prompt
+    if _system_prompt is None:
+        _system_prompt = _PROMPT_PATH.read_text(encoding="utf-8").strip()
+    return _system_prompt
+
+
+def _build_user_message(query: str, chunks: list[dict], session_context: dict | None) -> str:
+    chunks_text = "\n\n".join(
+        f"[{i + 1}] Title: {c.get('title', 'Unknown')}\n"
+        f"Source: {c.get('source', '')}\n"
+        f"Content: {c.get('content', '')}"
+        for i, c in enumerate(chunks)
+    )
+
+    context_block = ""
+    if session_context:
+        context_block = (
+            f"Session context:\n"
+            f"Prior query: {session_context.get('last_query', '')}\n"
+            f"Prior answer: {session_context.get('last_answer', '')}\n\n"
+        )
+
+    return (
+        f"{context_block}"
+        f"User query: {query}\n\n"
+        f"Retrieved chunks:\n{chunks_text}"
+    )
+
+
+def _build_chain(settings):
+    """
+    Build the LCEL chain: ChatPromptTemplate | AzureChatOpenAI | JsonOutputParser.
+
+    LangChain handles prompt templating and structured JSON output parsing.
+    LangGraph orchestrates when this node runs and what state it receives.
+    """
+    llm = AzureChatOpenAI(
+        azure_endpoint=settings.openai_endpoint,
+        azure_deployment=settings.openai_deployment,
+        api_version="2024-02-01",
+        temperature=settings.model_temperature,
+        max_tokens=settings.max_tokens,
+    )
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", "{system_prompt}"),
+        ("human", "{user_message}"),
+    ])
+    return prompt | llm | JsonOutputParser()
 
 
 async def synthesizer_node(state: AgentState) -> AgentState:
@@ -22,32 +89,36 @@ async def synthesizer_node(state: AgentState) -> AgentState:
 
     No tool calls. Operates on state only.
     Appends StepRecord to trace before returning. ADR-004.
-    Gracefully handles empty retrieved_chunks (returns structured refusal).
+    Returns structured refusal if chunks are empty or LLM signals INSUFFICIENT_CONTEXT.
     """
     start = time.perf_counter()
+    settings = get_settings()
+
+    chunks = state.get("retrieved_chunks", [])
 
     input_summary = {
-        "chunk_count": len(state.get("retrieved_chunks", [])),
+        "chunk_count": len(chunks),
         "query_length": len(state.get("query", "")),
         "has_session_context": state.get("session_context") is not None,
     }
 
-    # ── Core logic (replace stub with LLM call) ───────────────────────────────
-    # Prompt lives in agent/prompts/synthesizer_system.txt (hash-pinned, ADR-008)
-    answer, citations = _synthesize(
-        query=state["query"],
-        chunks=state.get("retrieved_chunks", []),
-        session_context=state.get("session_context"),
-    )
+    if not chunks:
+        answer, citations = _INSUFFICIENT, []
+    else:
+        answer, citations = await _synthesize(
+            query=state["query"],
+            chunks=chunks,
+            session_context=state.get("session_context"),
+            settings=settings,
+        )
 
     latency_ms = (time.perf_counter() - start) * 1000
 
-    # ── Append StepRecord (ADR-004) ───────────────────────────────────────────
     state["trace"].step_log.append(
         StepRecord(
             node_name="Synthesizer",
             input_hash=StepRecord.hash_content(input_summary),
-            tool_calls=[],  # Synthesizer never calls tools
+            tool_calls=[],
             output_hash=StepRecord.hash_content(
                 {"answer_length": len(answer), "citation_count": len(citations)}
             ),
@@ -60,25 +131,34 @@ async def synthesizer_node(state: AgentState) -> AgentState:
     return state
 
 
-def _synthesize(
+async def _synthesize(
     query: str,
     chunks: list[dict],
     session_context: dict | None,
+    settings,
 ) -> tuple[str, list[dict]]:
     """
-    Stub: replace with LLM call using agent/prompts/synthesizer_system.txt.
-    Must not make any tool calls — ADR-002, SYNTHESIZER_MANIFEST.
+    Use LangChain LCEL to synthesize an answer from retrieved chunks.
 
-    Returns (answer, citations). If chunks is empty, returns a
-    structured refusal — not an error. Refusals are correct behavior
-    for out-of-scope queries.
+    Chain: ChatPromptTemplate | AzureChatOpenAI | JsonOutputParser
+    Temperature=0 for deterministic execution.
+    Returns (INSUFFICIENT answer, []) if LLM signals insufficient context or parse fails.
     """
-    if not chunks:
-        return (
-            "I don't have enough information in my knowledge base to "
-            "answer this question accurately.",
-            [],
-        )
+    chain = _build_chain(settings)
 
-    # TODO: call Azure OpenAI with synthesizer_system.txt prompt
-    return "Stub answer — implement LLM synthesis.", []
+    try:
+        parsed = await chain.ainvoke({
+            "system_prompt": _get_system_prompt(),
+            "user_message": _build_user_message(query, chunks, session_context),
+        })
+
+        answer = parsed.get("answer", "")
+        citations = parsed.get("citations", [])
+
+        if answer == "INSUFFICIENT_CONTEXT" or not answer:
+            return _INSUFFICIENT, []
+
+        return answer, citations if isinstance(citations, list) else []
+
+    except Exception:
+        return _INSUFFICIENT, []

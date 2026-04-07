@@ -16,14 +16,18 @@ import time
 from agent.state import AgentState, StepRecord
 from agent.tools.manifests import (
     RETRIEVER_MANIFEST,
-    CapabilityViolationError,
     check_capability,
 )
+from api.config import get_settings
+
+# Confidence threshold: reranker score below this is not returned (ADR-002)
+_MIN_RERANKER_SCORE = 0.60
+_TOP_K = 5
 
 
 async def retriever_node(state: AgentState) -> AgentState:
     """
-    Executes sub-tasks against Azure AI Search (read-only).
+    Executes sub-tasks against Azure AI Search (read-only hybrid search).
 
     Appends StepRecord to trace before returning. ADR-004.
     Raises CapabilityViolationError on any out-of-manifest tool. ADR-002.
@@ -31,18 +35,16 @@ async def retriever_node(state: AgentState) -> AgentState:
     start = time.perf_counter()
 
     tool_name = "ai_search_read"
-    check_capability(RETRIEVER_MANIFEST, tool_name)  # enforce manifest
+    check_capability(RETRIEVER_MANIFEST, tool_name)
 
     input_summary = {"sub_tasks": state["sub_tasks"]}
 
-    # ── Core logic (replace stub with real AI Search call) ────────────────────
-    retrieved_chunks: list[dict] = await _search_index(
-        sub_tasks=state["sub_tasks"]
+    retrieved_chunks = await _search_index(
+        sub_tasks=state["sub_tasks"],
     )
 
     latency_ms = (time.perf_counter() - start) * 1000
 
-    # ── Append StepRecord (ADR-004) ───────────────────────────────────────────
     state["trace"].step_log.append(
         StepRecord(
             node_name="Retriever",
@@ -59,13 +61,58 @@ async def retriever_node(state: AgentState) -> AgentState:
 
 async def _search_index(sub_tasks: list[str]) -> list[dict]:
     """
-    Stub: replace with real Azure AI Search call.
-    Uses ai_search_read tool only — any other tool raises CapabilityViolationError.
+    Execute hybrid semantic search for each sub-task against Azure AI Search.
+    Deduplicates results by source document. Returns top-K chunks above
+    the confidence threshold.
 
-    To test capability enforcement deliberately:
-        check_capability(RETRIEVER_MANIFEST, "ai_search_write")  # raises
+    Uses managed identity (DefaultAzureCredential) — no API key in code.
+    Azure SDK imports are deferred to avoid network probes at module load time.
     """
-    # TODO: implement Azure AI Search hybrid query
-    # from agent.tools.ai_search_read import search
-    # results = await search(queries=sub_tasks, top_k=5)
-    return []
+    from azure.identity import DefaultAzureCredential
+    from azure.search.documents.aio import SearchClient
+
+    settings = get_settings()
+
+    if not settings.search_endpoint or not settings.search_index_name:
+        return []
+
+    credential = DefaultAzureCredential()
+    all_chunks: list[dict] = []
+    seen_sources: set[str] = set()
+
+    async with SearchClient(
+        endpoint=settings.search_endpoint,
+        index_name=settings.search_index_name,
+        credential=credential,
+    ) as client:
+        for query_text in sub_tasks:
+            results = await client.search(
+                search_text=query_text,
+                query_type="semantic",
+                semantic_configuration_name="default",
+                query_language="en-us",
+                top=_TOP_K,
+                select=["title", "content", "source", "last_modified"],
+            )
+
+            async for result in results:
+                reranker_score = result.get("@search.reranker_score") or 0.0
+                if reranker_score < _MIN_RERANKER_SCORE:
+                    continue
+
+                source = result.get("source", "")
+                if source in seen_sources:
+                    continue
+                seen_sources.add(source)
+
+                all_chunks.append({
+                    "title": result.get("title", ""),
+                    "content": result.get("content", ""),
+                    "source": source,
+                    "last_modified": result.get("last_modified", ""),
+                    "reranker_score": round(reranker_score, 4),
+                })
+
+    # Sort by reranker score descending, return top K overall
+    all_chunks.sort(key=lambda c: c["reranker_score"], reverse=True)
+    return all_chunks[:_TOP_K]

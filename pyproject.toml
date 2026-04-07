@@ -21,6 +21,7 @@ dependencies = [
     "uvicorn[standard]>=0.30.0",
     "langgraph>=0.2.0",
     "langchain-core>=0.2.0",
+    "langchain-openai>=0.1.0",
     "openai>=1.35.0",
     "azure-identity>=1.17.0",
     "azure-keyvault-secrets>=4.8.0",
@@ -31,6 +32,7 @@ dependencies = [
     "pydantic-settings>=2.3.0",
     "httpx>=0.27.0",
     "python-dotenv>=1.0.0",
+    "pyagentspec>=26.1.0",
 ]
 
 [project.optional-dependencies]

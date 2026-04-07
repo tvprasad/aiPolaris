@@ -28,6 +28,7 @@ PROMPTS_DIR   = Path("agent/prompts")
 LOCK_FILE     = Path("prompts.lock")
 RECORDS_DIR   = Path("release_records")
 EVAL_RESULTS  = Path("eval/results")
+AGENT_SPEC_PATH = Path("release_records/agent-spec.yaml")
 
 
 def get_git_sha() -> str:
@@ -40,6 +41,23 @@ def get_prompt_hashes() -> dict:
     if not LOCK_FILE.exists():
         return {}
     return json.loads(LOCK_FILE.read_text())
+
+
+def export_agent_spec() -> str:
+    """
+    Export the compiled LangGraph graph to Agent Spec YAML (ADR-010).
+    Returns the SHA-256 hash of the exported spec for prompts.lock.
+    """
+    from pyagentspec.adapters.langgraph import AgentSpecExporter
+    from agent.graph import graph
+
+    exporter = AgentSpecExporter()
+    spec_yaml = exporter.to_yaml(graph)
+    AGENT_SPEC_PATH.parent.mkdir(exist_ok=True)
+    AGENT_SPEC_PATH.write_text(spec_yaml)
+    spec_hash = hashlib.sha256(spec_yaml.encode()).hexdigest()
+    print(f"Agent spec written: {AGENT_SPEC_PATH}  (sha256: {spec_hash[:12]}...)")
+    return spec_hash
 
 
 def get_latest_eval() -> dict:
@@ -68,6 +86,8 @@ def main() -> int:
     timestamp = now.strftime("%Y-%m-%dT%H:%M:%SZ")
     filename  = f"{timestamp}_{sha[:8]}.yaml"
 
+    agent_spec_hash = export_agent_spec()
+
     record = {
         "release_id":    timestamp,
         "git_sha":       sha,
@@ -81,8 +101,10 @@ def main() -> int:
         "type_check_passed":      os.getenv("TYPES_PASSED", "false") == "true",
         "test_coverage_pct":      float(os.getenv("COVERAGE_PCT", "0")),
 
-        # Prompt integrity — ADR-008 / NIST CM-3
+        # Prompt + agent spec integrity — ADR-008, ADR-010 / NIST CM-3
         "prompt_hashes": get_prompt_hashes(),
+        "agent_spec_sha256": agent_spec_hash,
+        "agent_spec_path": str(AGENT_SPEC_PATH),
 
         # Eval delta — behavioral ConMon / NIST CA-7
         "eval": get_latest_eval(),
