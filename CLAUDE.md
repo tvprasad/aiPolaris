@@ -59,6 +59,7 @@ Eval     : offline harness, golden_questions.json, p50/p95/refusal metrics
 - Use sync blocking calls in async FastAPI route handlers
 - Write a node that mutates state outside its declared ownership
 - Merge without all CI gates passing
+- Commit without running `mypy agent/ pipeline/ api/ --strict` locally — same command CI runs. Never commit without mypy clean.
 
 ## Eval acceptance criteria (Artifact 4)
 - p95 latency        : < 4,000 ms
@@ -72,3 +73,4 @@ Eval     : offline harness, golden_questions.json, p50/p95/refusal metrics
 
 ## Lessons learned — add after every mistake
 # Format: [date]: [what went wrong] → [rule added]
+# [2026-04-08]: LCEL changes shipped with mypy errors (max_tokens kwarg, untyped dict, missing annotations). CI caught it; local pre-commit did not. → mypy --strict is now a locked pre-commit rule.

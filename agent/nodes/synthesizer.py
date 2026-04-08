@@ -17,14 +17,16 @@ LLM LAYER:
 
 import time
 from pathlib import Path
+from typing import Any
 
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import Runnable
 from langchain_openai import AzureChatOpenAI
 
 from agent.state import AgentState, StepRecord
 from agent.tools.manifests import SYNTHESIZER_MANIFEST  # noqa: F401
-from api.config import get_settings
+from api.config import Settings, get_settings
 
 _PROMPT_PATH = Path(__file__).parent.parent / "prompts" / "synthesizer_system.txt"
 _system_prompt: str | None = None
@@ -39,7 +41,7 @@ def _get_system_prompt() -> str:
     return _system_prompt
 
 
-def _build_user_message(query: str, chunks: list[dict], session_context: dict | None) -> str:
+def _build_user_message(query: str, chunks: list[dict[str, Any]], session_context: dict[str, Any] | None) -> str:
     chunks_text = "\n\n".join(
         f"[{i + 1}] Title: {c.get('title', 'Unknown')}\n"
         f"Source: {c.get('source', '')}\n"
@@ -62,7 +64,7 @@ def _build_user_message(query: str, chunks: list[dict], session_context: dict | 
     )
 
 
-def _build_chain(settings):
+def _build_chain(settings: Settings) -> Runnable[dict[str, Any], Any]:
     """
     Build the LCEL chain: ChatPromptTemplate | AzureChatOpenAI | JsonOutputParser.
 
@@ -74,7 +76,7 @@ def _build_chain(settings):
         azure_deployment=settings.openai_deployment,
         api_version="2024-02-01",
         temperature=settings.model_temperature,
-        max_tokens=settings.max_tokens,
+        model_kwargs={"max_tokens": settings.max_tokens},
     )
     prompt = ChatPromptTemplate.from_messages([
         ("system", "{system_prompt}"),
@@ -102,6 +104,7 @@ async def synthesizer_node(state: AgentState) -> AgentState:
         "has_session_context": state.get("session_context") is not None,
     }
 
+    citations: list[dict[str, Any]]
     if not chunks:
         answer, citations = _INSUFFICIENT, []
     else:
@@ -133,10 +136,10 @@ async def synthesizer_node(state: AgentState) -> AgentState:
 
 async def _synthesize(
     query: str,
-    chunks: list[dict],
-    session_context: dict | None,
-    settings,
-) -> tuple[str, list[dict]]:
+    chunks: list[dict[str, Any]],
+    session_context: dict[str, Any] | None,
+    settings: Settings,
+) -> tuple[str, list[dict[str, Any]]]:
     """
     Use LangChain LCEL to synthesize an answer from retrieved chunks.
 
@@ -152,8 +155,8 @@ async def _synthesize(
             "user_message": _build_user_message(query, chunks, session_context),
         })
 
-        answer = parsed.get("answer", "")
-        citations = parsed.get("citations", [])
+        answer: str = parsed.get("answer", "")
+        citations: list[dict[str, Any]] = parsed.get("citations", [])
 
         if answer == "INSUFFICIENT_CONTEXT" or not answer:
             return _INSUFFICIENT, []
