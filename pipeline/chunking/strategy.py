@@ -115,7 +115,9 @@ class OverlappingWindowChunker:
                 ))
                 index += 1
 
-            # Advance with overlap
+            # Advance with overlap — stop if we've processed to end of document
+            if end >= len(content):
+                break
             start = end - overlap_chars
 
         return chunks
