@@ -1,0 +1,25 @@
+release_id: '2026-04-11T21:53:37Z'
+git_sha: f3b04f7cb447da07825c0d65709d12ce4c7810cd
+deployed_by: tvprasad
+environment: commercial
+sast_passed: false
+dependency_scan_clean: false
+secrets_scan_clean: false
+type_check_passed: false
+test_coverage_pct: 0.0
+prompt_hashes:
+  planner_system.txt: 5582407b6906408165edc9ba54147abca4d432fe7f1e6f336c20141f7a7b2a37
+  retriever_system.txt: 879da08be385decebbaaca6535726b14db3a6e8df5836350c5fcf21eda99955c
+  synthesizer_system.txt: 2a1ac01de6fba6724df1f0ccf22fd637dcebdb3c2e8c2b390c630af2f7209114
+agent_spec_sha256: c7a173c0fe3c0c31376d9786b78ceea462cbbbfd3285168750d6c6ed0e18aaab
+agent_spec_path: release_records/agent-spec.yaml
+eval:
+  run_id: eval_20260315T181854Z
+  p50_latency_ms: 3.88
+  p95_latency_ms: 5.91
+  avg_confidence: 0.0
+  refusal_rate: 1.0
+  incorrect_refusal_rate: 0.8
+  followup_pass_rate: 0.0
+terraform_workspace: commercial
+confidence_threshold: 0.6

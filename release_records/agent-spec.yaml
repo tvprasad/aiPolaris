@@ -1,0 +1,1833 @@
+component_type: Flow
+id: 3aed0f0e-ad6c-4f61-b196-ad2791cb720b
+name: LangGraph
+description: null
+metadata: {}
+inputs:
+- $defs:
+    StepRecord:
+      properties:
+        node_name:
+          title: Node Name
+          type: string
+        input_hash:
+          title: Input Hash
+          type: string
+        tool_calls:
+          items:
+            type: string
+          title: Tool Calls
+          type: array
+        output_hash:
+          title: Output Hash
+          type: string
+        latency_ms:
+          title: Latency Ms
+          type: number
+        timestamp:
+          title: Timestamp
+          type: string
+      required:
+      - node_name
+      - input_hash
+      - tool_calls
+      - output_hash
+      - latency_ms
+      title: StepRecord
+      type: object
+    TraceContext:
+      properties:
+        trace_id:
+          title: Trace Id
+          type: string
+        step_log:
+          items:
+            $ref: '#/$defs/StepRecord'
+          title: Step Log
+          type: array
+      title: TraceContext
+      type: object
+  properties:
+    query:
+      title: query
+      type: string
+    session_context:
+      anyOf:
+      - additionalProperties: true
+        type: object
+      - type: 'null'
+      title: session_context
+    user_oid:
+      anyOf:
+      - type: string
+      - type: 'null'
+      title: user_oid
+    sub_tasks:
+      items:
+        type: string
+      title: sub_tasks
+      type: array
+    retrieved_chunks:
+      items:
+        additionalProperties: true
+        type: object
+      title: retrieved_chunks
+      type: array
+    answer:
+      title: answer
+      type: string
+    citations:
+      items:
+        additionalProperties: true
+        type: object
+      title: citations
+      type: array
+    trace:
+      $ref: '#/$defs/TraceContext'
+      title: trace
+  required:
+  - query
+  - session_context
+  - user_oid
+  - sub_tasks
+  - retrieved_chunks
+  - answer
+  - citations
+  - trace
+  title: state
+  type: object
+outputs:
+- $defs:
+    StepRecord:
+      properties:
+        node_name:
+          title: Node Name
+          type: string
+        input_hash:
+          title: Input Hash
+          type: string
+        tool_calls:
+          items:
+            type: string
+          title: Tool Calls
+          type: array
+        output_hash:
+          title: Output Hash
+          type: string
+        latency_ms:
+          title: Latency Ms
+          type: number
+        timestamp:
+          title: Timestamp
+          type: string
+      required:
+      - node_name
+      - input_hash
+      - tool_calls
+      - output_hash
+      - latency_ms
+      title: StepRecord
+      type: object
+    TraceContext:
+      properties:
+        trace_id:
+          title: Trace Id
+          type: string
+        step_log:
+          items:
+            $ref: '#/$defs/StepRecord'
+          title: Step Log
+          type: array
+      title: TraceContext
+      type: object
+  properties:
+    query:
+      title: query
+      type: string
+    session_context:
+      anyOf:
+      - additionalProperties: true
+        type: object
+      - type: 'null'
+      title: session_context
+    user_oid:
+      anyOf:
+      - type: string
+      - type: 'null'
+      title: user_oid
+    sub_tasks:
+      items:
+        type: string
+      title: sub_tasks
+      type: array
+    retrieved_chunks:
+      items:
+        additionalProperties: true
+        type: object
+      title: retrieved_chunks
+      type: array
+    answer:
+      title: answer
+      type: string
+    citations:
+      items:
+        additionalProperties: true
+        type: object
+      title: citations
+      type: array
+    trace:
+      $ref: '#/$defs/TraceContext'
+      title: trace
+  required:
+  - query
+  - session_context
+  - user_oid
+  - sub_tasks
+  - retrieved_chunks
+  - answer
+  - citations
+  - trace
+  title: state
+  type: object
+start_node:
+  $component_ref: 5eece844-7450-4c93-a24c-aa2d7d54a8cd
+nodes:
+- $component_ref: cddf90f3-323a-4dfd-881d-0826eacfaa68
+- $component_ref: 9b38bd6d-7274-4485-940b-dc13a06449e8
+- $component_ref: 789f9769-ab76-443a-a916-8527b2b6c1ea
+- $component_ref: 5eece844-7450-4c93-a24c-aa2d7d54a8cd
+- $component_ref: c831ffc9-b83f-4583-b2f7-b0e38b1c185f
+control_flow_connections:
+- component_type: ControlFlowEdge
+  id: 509a67ab-b40a-4f2b-80d4-1b55195b35f7
+  name: __start___to_planner
+  description: null
+  metadata: {}
+  from_node:
+    $component_ref: 5eece844-7450-4c93-a24c-aa2d7d54a8cd
+  from_branch: null
+  to_node:
+    $component_ref: cddf90f3-323a-4dfd-881d-0826eacfaa68
+- component_type: ControlFlowEdge
+  id: f27be5ba-1678-42f0-ac49-f9ba407015d6
+  name: retriever_to_synthesizer
+  description: null
+  metadata: {}
+  from_node:
+    $component_ref: 9b38bd6d-7274-4485-940b-dc13a06449e8
+  from_branch: null
+  to_node:
+    $component_ref: 789f9769-ab76-443a-a916-8527b2b6c1ea
+- component_type: ControlFlowEdge
+  id: c32ce5f6-7368-4617-b642-3b97d76371a5
+  name: planner_to_retriever
+  description: null
+  metadata: {}
+  from_node:
+    $component_ref: cddf90f3-323a-4dfd-881d-0826eacfaa68
+  from_branch: null
+  to_node:
+    $component_ref: 9b38bd6d-7274-4485-940b-dc13a06449e8
+- component_type: ControlFlowEdge
+  id: 89c4a50f-5a5e-45f2-a822-ebf754967625
+  name: synthesizer_to___end__
+  description: null
+  metadata: {}
+  from_node:
+    $component_ref: 789f9769-ab76-443a-a916-8527b2b6c1ea
+  from_branch: null
+  to_node:
+    $component_ref: c831ffc9-b83f-4583-b2f7-b0e38b1c185f
+data_flow_connections:
+- component_type: DataFlowEdge
+  id: 069eb533-d5ab-476c-86ae-14d77c167ef3
+  name: __start___to_planner_data_edge
+  description: null
+  metadata: {}
+  source_node:
+    $component_ref: 5eece844-7450-4c93-a24c-aa2d7d54a8cd
+  source_output: state
+  destination_node:
+    $component_ref: cddf90f3-323a-4dfd-881d-0826eacfaa68
+  destination_input: state
+- component_type: DataFlowEdge
+  id: d7393e8f-afb4-4001-90b6-c4497aa7cab7
+  name: retriever_to_synthesizer_data_edge
+  description: null
+  metadata: {}
+  source_node:
+    $component_ref: 9b38bd6d-7274-4485-940b-dc13a06449e8
+  source_output: state
+  destination_node:
+    $component_ref: 789f9769-ab76-443a-a916-8527b2b6c1ea
+  destination_input: state
+- component_type: DataFlowEdge
+  id: eb94382d-ac16-4f6c-9174-f9fb6830681f
+  name: planner_to_retriever_data_edge
+  description: null
+  metadata: {}
+  source_node:
+    $component_ref: cddf90f3-323a-4dfd-881d-0826eacfaa68
+  source_output: state
+  destination_node:
+    $component_ref: 9b38bd6d-7274-4485-940b-dc13a06449e8
+  destination_input: state
+- component_type: DataFlowEdge
+  id: feffc087-192b-4b4e-9969-2039e6754a21
+  name: synthesizer_to___end___data_edge
+  description: null
+  metadata: {}
+  source_node:
+    $component_ref: 789f9769-ab76-443a-a916-8527b2b6c1ea
+  source_output: state
+  destination_node:
+    $component_ref: c831ffc9-b83f-4583-b2f7-b0e38b1c185f
+  destination_input: state
+$referenced_components:
+  cddf90f3-323a-4dfd-881d-0826eacfaa68:
+    component_type: ToolNode
+    id: cddf90f3-323a-4dfd-881d-0826eacfaa68
+    name: planner
+    description: null
+    metadata: {}
+    inputs:
+    - $defs:
+        StepRecord:
+          properties:
+            node_name:
+              title: Node Name
+              type: string
+            input_hash:
+              title: Input Hash
+              type: string
+            tool_calls:
+              items:
+                type: string
+              title: Tool Calls
+              type: array
+            output_hash:
+              title: Output Hash
+              type: string
+            latency_ms:
+              title: Latency Ms
+              type: number
+            timestamp:
+              title: Timestamp
+              type: string
+          required:
+          - node_name
+          - input_hash
+          - tool_calls
+          - output_hash
+          - latency_ms
+          title: StepRecord
+          type: object
+        TraceContext:
+          properties:
+            trace_id:
+              title: Trace Id
+              type: string
+            step_log:
+              items:
+                $ref: '#/$defs/StepRecord'
+              title: Step Log
+              type: array
+          title: TraceContext
+          type: object
+      properties:
+        query:
+          title: query
+          type: string
+        session_context:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: session_context
+        user_oid:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: user_oid
+        sub_tasks:
+          items:
+            type: string
+          title: sub_tasks
+          type: array
+        retrieved_chunks:
+          items:
+            additionalProperties: true
+            type: object
+          title: retrieved_chunks
+          type: array
+        answer:
+          title: answer
+          type: string
+        citations:
+          items:
+            additionalProperties: true
+            type: object
+          title: citations
+          type: array
+        trace:
+          $ref: '#/$defs/TraceContext'
+          title: trace
+      required:
+      - query
+      - session_context
+      - user_oid
+      - sub_tasks
+      - retrieved_chunks
+      - answer
+      - citations
+      - trace
+      title: state
+      type: object
+    outputs:
+    - $defs:
+        StepRecord:
+          properties:
+            node_name:
+              title: Node Name
+              type: string
+            input_hash:
+              title: Input Hash
+              type: string
+            tool_calls:
+              items:
+                type: string
+              title: Tool Calls
+              type: array
+            output_hash:
+              title: Output Hash
+              type: string
+            latency_ms:
+              title: Latency Ms
+              type: number
+            timestamp:
+              title: Timestamp
+              type: string
+          required:
+          - node_name
+          - input_hash
+          - tool_calls
+          - output_hash
+          - latency_ms
+          title: StepRecord
+          type: object
+        TraceContext:
+          properties:
+            trace_id:
+              title: Trace Id
+              type: string
+            step_log:
+              items:
+                $ref: '#/$defs/StepRecord'
+              title: Step Log
+              type: array
+          title: TraceContext
+          type: object
+      properties:
+        query:
+          title: query
+          type: string
+        session_context:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: session_context
+        user_oid:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: user_oid
+        sub_tasks:
+          items:
+            type: string
+          title: sub_tasks
+          type: array
+        retrieved_chunks:
+          items:
+            additionalProperties: true
+            type: object
+          title: retrieved_chunks
+          type: array
+        answer:
+          title: answer
+          type: string
+        citations:
+          items:
+            additionalProperties: true
+            type: object
+          title: citations
+          type: array
+        trace:
+          $ref: '#/$defs/TraceContext'
+          title: trace
+      required:
+      - query
+      - session_context
+      - user_oid
+      - sub_tasks
+      - retrieved_chunks
+      - answer
+      - citations
+      - trace
+      title: state
+      type: object
+    branches:
+    - next
+    tool:
+      component_type: ServerTool
+      id: 9adf0756-f788-4a7c-b174-cea47e137418
+      name: planner_tool
+      description: null
+      metadata: {}
+      inputs:
+      - $defs:
+          StepRecord:
+            properties:
+              node_name:
+                title: Node Name
+                type: string
+              input_hash:
+                title: Input Hash
+                type: string
+              tool_calls:
+                items:
+                  type: string
+                title: Tool Calls
+                type: array
+              output_hash:
+                title: Output Hash
+                type: string
+              latency_ms:
+                title: Latency Ms
+                type: number
+              timestamp:
+                title: Timestamp
+                type: string
+            required:
+            - node_name
+            - input_hash
+            - tool_calls
+            - output_hash
+            - latency_ms
+            title: StepRecord
+            type: object
+          TraceContext:
+            properties:
+              trace_id:
+                title: Trace Id
+                type: string
+              step_log:
+                items:
+                  $ref: '#/$defs/StepRecord'
+                title: Step Log
+                type: array
+            title: TraceContext
+            type: object
+        properties:
+          query:
+            title: query
+            type: string
+          session_context:
+            anyOf:
+            - additionalProperties: true
+              type: object
+            - type: 'null'
+            title: session_context
+          user_oid:
+            anyOf:
+            - type: string
+            - type: 'null'
+            title: user_oid
+          sub_tasks:
+            items:
+              type: string
+            title: sub_tasks
+            type: array
+          retrieved_chunks:
+            items:
+              additionalProperties: true
+              type: object
+            title: retrieved_chunks
+            type: array
+          answer:
+            title: answer
+            type: string
+          citations:
+            items:
+              additionalProperties: true
+              type: object
+            title: citations
+            type: array
+          trace:
+            $ref: '#/$defs/TraceContext'
+            title: trace
+        required:
+        - query
+        - session_context
+        - user_oid
+        - sub_tasks
+        - retrieved_chunks
+        - answer
+        - citations
+        - trace
+        title: state
+        type: object
+      outputs:
+      - $defs:
+          StepRecord:
+            properties:
+              node_name:
+                title: Node Name
+                type: string
+              input_hash:
+                title: Input Hash
+                type: string
+              tool_calls:
+                items:
+                  type: string
+                title: Tool Calls
+                type: array
+              output_hash:
+                title: Output Hash
+                type: string
+              latency_ms:
+                title: Latency Ms
+                type: number
+              timestamp:
+                title: Timestamp
+                type: string
+            required:
+            - node_name
+            - input_hash
+            - tool_calls
+            - output_hash
+            - latency_ms
+            title: StepRecord
+            type: object
+          TraceContext:
+            properties:
+              trace_id:
+                title: Trace Id
+                type: string
+              step_log:
+                items:
+                  $ref: '#/$defs/StepRecord'
+                title: Step Log
+                type: array
+            title: TraceContext
+            type: object
+        properties:
+          query:
+            title: query
+            type: string
+          session_context:
+            anyOf:
+            - additionalProperties: true
+              type: object
+            - type: 'null'
+            title: session_context
+          user_oid:
+            anyOf:
+            - type: string
+            - type: 'null'
+            title: user_oid
+          sub_tasks:
+            items:
+              type: string
+            title: sub_tasks
+            type: array
+          retrieved_chunks:
+            items:
+              additionalProperties: true
+              type: object
+            title: retrieved_chunks
+            type: array
+          answer:
+            title: answer
+            type: string
+          citations:
+            items:
+              additionalProperties: true
+              type: object
+            title: citations
+            type: array
+          trace:
+            $ref: '#/$defs/TraceContext'
+            title: trace
+        required:
+        - query
+        - session_context
+        - user_oid
+        - sub_tasks
+        - retrieved_chunks
+        - answer
+        - citations
+        - trace
+        title: state
+        type: object
+  5eece844-7450-4c93-a24c-aa2d7d54a8cd:
+    component_type: StartNode
+    id: 5eece844-7450-4c93-a24c-aa2d7d54a8cd
+    name: __start__
+    description: null
+    metadata: {}
+    inputs:
+    - $defs:
+        StepRecord:
+          properties:
+            node_name:
+              title: Node Name
+              type: string
+            input_hash:
+              title: Input Hash
+              type: string
+            tool_calls:
+              items:
+                type: string
+              title: Tool Calls
+              type: array
+            output_hash:
+              title: Output Hash
+              type: string
+            latency_ms:
+              title: Latency Ms
+              type: number
+            timestamp:
+              title: Timestamp
+              type: string
+          required:
+          - node_name
+          - input_hash
+          - tool_calls
+          - output_hash
+          - latency_ms
+          title: StepRecord
+          type: object
+        TraceContext:
+          properties:
+            trace_id:
+              title: Trace Id
+              type: string
+            step_log:
+              items:
+                $ref: '#/$defs/StepRecord'
+              title: Step Log
+              type: array
+          title: TraceContext
+          type: object
+      properties:
+        query:
+          title: query
+          type: string
+        session_context:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: session_context
+        user_oid:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: user_oid
+        sub_tasks:
+          items:
+            type: string
+          title: sub_tasks
+          type: array
+        retrieved_chunks:
+          items:
+            additionalProperties: true
+            type: object
+          title: retrieved_chunks
+          type: array
+        answer:
+          title: answer
+          type: string
+        citations:
+          items:
+            additionalProperties: true
+            type: object
+          title: citations
+          type: array
+        trace:
+          $ref: '#/$defs/TraceContext'
+          title: trace
+      required:
+      - query
+      - session_context
+      - user_oid
+      - sub_tasks
+      - retrieved_chunks
+      - answer
+      - citations
+      - trace
+      title: state
+      type: object
+    outputs:
+    - $defs:
+        StepRecord:
+          properties:
+            node_name:
+              title: Node Name
+              type: string
+            input_hash:
+              title: Input Hash
+              type: string
+            tool_calls:
+              items:
+                type: string
+              title: Tool Calls
+              type: array
+            output_hash:
+              title: Output Hash
+              type: string
+            latency_ms:
+              title: Latency Ms
+              type: number
+            timestamp:
+              title: Timestamp
+              type: string
+          required:
+          - node_name
+          - input_hash
+          - tool_calls
+          - output_hash
+          - latency_ms
+          title: StepRecord
+          type: object
+        TraceContext:
+          properties:
+            trace_id:
+              title: Trace Id
+              type: string
+            step_log:
+              items:
+                $ref: '#/$defs/StepRecord'
+              title: Step Log
+              type: array
+          title: TraceContext
+          type: object
+      properties:
+        query:
+          title: query
+          type: string
+        session_context:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: session_context
+        user_oid:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: user_oid
+        sub_tasks:
+          items:
+            type: string
+          title: sub_tasks
+          type: array
+        retrieved_chunks:
+          items:
+            additionalProperties: true
+            type: object
+          title: retrieved_chunks
+          type: array
+        answer:
+          title: answer
+          type: string
+        citations:
+          items:
+            additionalProperties: true
+            type: object
+          title: citations
+          type: array
+        trace:
+          $ref: '#/$defs/TraceContext'
+          title: trace
+      required:
+      - query
+      - session_context
+      - user_oid
+      - sub_tasks
+      - retrieved_chunks
+      - answer
+      - citations
+      - trace
+      title: state
+      type: object
+    branches:
+    - next
+  789f9769-ab76-443a-a916-8527b2b6c1ea:
+    component_type: ToolNode
+    id: 789f9769-ab76-443a-a916-8527b2b6c1ea
+    name: synthesizer
+    description: null
+    metadata: {}
+    inputs:
+    - $defs:
+        StepRecord:
+          properties:
+            node_name:
+              title: Node Name
+              type: string
+            input_hash:
+              title: Input Hash
+              type: string
+            tool_calls:
+              items:
+                type: string
+              title: Tool Calls
+              type: array
+            output_hash:
+              title: Output Hash
+              type: string
+            latency_ms:
+              title: Latency Ms
+              type: number
+            timestamp:
+              title: Timestamp
+              type: string
+          required:
+          - node_name
+          - input_hash
+          - tool_calls
+          - output_hash
+          - latency_ms
+          title: StepRecord
+          type: object
+        TraceContext:
+          properties:
+            trace_id:
+              title: Trace Id
+              type: string
+            step_log:
+              items:
+                $ref: '#/$defs/StepRecord'
+              title: Step Log
+              type: array
+          title: TraceContext
+          type: object
+      properties:
+        query:
+          title: query
+          type: string
+        session_context:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: session_context
+        user_oid:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: user_oid
+        sub_tasks:
+          items:
+            type: string
+          title: sub_tasks
+          type: array
+        retrieved_chunks:
+          items:
+            additionalProperties: true
+            type: object
+          title: retrieved_chunks
+          type: array
+        answer:
+          title: answer
+          type: string
+        citations:
+          items:
+            additionalProperties: true
+            type: object
+          title: citations
+          type: array
+        trace:
+          $ref: '#/$defs/TraceContext'
+          title: trace
+      required:
+      - query
+      - session_context
+      - user_oid
+      - sub_tasks
+      - retrieved_chunks
+      - answer
+      - citations
+      - trace
+      title: state
+      type: object
+    outputs:
+    - $defs:
+        StepRecord:
+          properties:
+            node_name:
+              title: Node Name
+              type: string
+            input_hash:
+              title: Input Hash
+              type: string
+            tool_calls:
+              items:
+                type: string
+              title: Tool Calls
+              type: array
+            output_hash:
+              title: Output Hash
+              type: string
+            latency_ms:
+              title: Latency Ms
+              type: number
+            timestamp:
+              title: Timestamp
+              type: string
+          required:
+          - node_name
+          - input_hash
+          - tool_calls
+          - output_hash
+          - latency_ms
+          title: StepRecord
+          type: object
+        TraceContext:
+          properties:
+            trace_id:
+              title: Trace Id
+              type: string
+            step_log:
+              items:
+                $ref: '#/$defs/StepRecord'
+              title: Step Log
+              type: array
+          title: TraceContext
+          type: object
+      properties:
+        query:
+          title: query
+          type: string
+        session_context:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: session_context
+        user_oid:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: user_oid
+        sub_tasks:
+          items:
+            type: string
+          title: sub_tasks
+          type: array
+        retrieved_chunks:
+          items:
+            additionalProperties: true
+            type: object
+          title: retrieved_chunks
+          type: array
+        answer:
+          title: answer
+          type: string
+        citations:
+          items:
+            additionalProperties: true
+            type: object
+          title: citations
+          type: array
+        trace:
+          $ref: '#/$defs/TraceContext'
+          title: trace
+      required:
+      - query
+      - session_context
+      - user_oid
+      - sub_tasks
+      - retrieved_chunks
+      - answer
+      - citations
+      - trace
+      title: state
+      type: object
+    branches:
+    - next
+    tool:
+      component_type: ServerTool
+      id: 32add717-fca9-4778-ae06-182b2ee278db
+      name: synthesizer_tool
+      description: null
+      metadata: {}
+      inputs:
+      - $defs:
+          StepRecord:
+            properties:
+              node_name:
+                title: Node Name
+                type: string
+              input_hash:
+                title: Input Hash
+                type: string
+              tool_calls:
+                items:
+                  type: string
+                title: Tool Calls
+                type: array
+              output_hash:
+                title: Output Hash
+                type: string
+              latency_ms:
+                title: Latency Ms
+                type: number
+              timestamp:
+                title: Timestamp
+                type: string
+            required:
+            - node_name
+            - input_hash
+            - tool_calls
+            - output_hash
+            - latency_ms
+            title: StepRecord
+            type: object
+          TraceContext:
+            properties:
+              trace_id:
+                title: Trace Id
+                type: string
+              step_log:
+                items:
+                  $ref: '#/$defs/StepRecord'
+                title: Step Log
+                type: array
+            title: TraceContext
+            type: object
+        properties:
+          query:
+            title: query
+            type: string
+          session_context:
+            anyOf:
+            - additionalProperties: true
+              type: object
+            - type: 'null'
+            title: session_context
+          user_oid:
+            anyOf:
+            - type: string
+            - type: 'null'
+            title: user_oid
+          sub_tasks:
+            items:
+              type: string
+            title: sub_tasks
+            type: array
+          retrieved_chunks:
+            items:
+              additionalProperties: true
+              type: object
+            title: retrieved_chunks
+            type: array
+          answer:
+            title: answer
+            type: string
+          citations:
+            items:
+              additionalProperties: true
+              type: object
+            title: citations
+            type: array
+          trace:
+            $ref: '#/$defs/TraceContext'
+            title: trace
+        required:
+        - query
+        - session_context
+        - user_oid
+        - sub_tasks
+        - retrieved_chunks
+        - answer
+        - citations
+        - trace
+        title: state
+        type: object
+      outputs:
+      - $defs:
+          StepRecord:
+            properties:
+              node_name:
+                title: Node Name
+                type: string
+              input_hash:
+                title: Input Hash
+                type: string
+              tool_calls:
+                items:
+                  type: string
+                title: Tool Calls
+                type: array
+              output_hash:
+                title: Output Hash
+                type: string
+              latency_ms:
+                title: Latency Ms
+                type: number
+              timestamp:
+                title: Timestamp
+                type: string
+            required:
+            - node_name
+            - input_hash
+            - tool_calls
+            - output_hash
+            - latency_ms
+            title: StepRecord
+            type: object
+          TraceContext:
+            properties:
+              trace_id:
+                title: Trace Id
+                type: string
+              step_log:
+                items:
+                  $ref: '#/$defs/StepRecord'
+                title: Step Log
+                type: array
+            title: TraceContext
+            type: object
+        properties:
+          query:
+            title: query
+            type: string
+          session_context:
+            anyOf:
+            - additionalProperties: true
+              type: object
+            - type: 'null'
+            title: session_context
+          user_oid:
+            anyOf:
+            - type: string
+            - type: 'null'
+            title: user_oid
+          sub_tasks:
+            items:
+              type: string
+            title: sub_tasks
+            type: array
+          retrieved_chunks:
+            items:
+              additionalProperties: true
+              type: object
+            title: retrieved_chunks
+            type: array
+          answer:
+            title: answer
+            type: string
+          citations:
+            items:
+              additionalProperties: true
+              type: object
+            title: citations
+            type: array
+          trace:
+            $ref: '#/$defs/TraceContext'
+            title: trace
+        required:
+        - query
+        - session_context
+        - user_oid
+        - sub_tasks
+        - retrieved_chunks
+        - answer
+        - citations
+        - trace
+        title: state
+        type: object
+  9b38bd6d-7274-4485-940b-dc13a06449e8:
+    component_type: ToolNode
+    id: 9b38bd6d-7274-4485-940b-dc13a06449e8
+    name: retriever
+    description: null
+    metadata: {}
+    inputs:
+    - $defs:
+        StepRecord:
+          properties:
+            node_name:
+              title: Node Name
+              type: string
+            input_hash:
+              title: Input Hash
+              type: string
+            tool_calls:
+              items:
+                type: string
+              title: Tool Calls
+              type: array
+            output_hash:
+              title: Output Hash
+              type: string
+            latency_ms:
+              title: Latency Ms
+              type: number
+            timestamp:
+              title: Timestamp
+              type: string
+          required:
+          - node_name
+          - input_hash
+          - tool_calls
+          - output_hash
+          - latency_ms
+          title: StepRecord
+          type: object
+        TraceContext:
+          properties:
+            trace_id:
+              title: Trace Id
+              type: string
+            step_log:
+              items:
+                $ref: '#/$defs/StepRecord'
+              title: Step Log
+              type: array
+          title: TraceContext
+          type: object
+      properties:
+        query:
+          title: query
+          type: string
+        session_context:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: session_context
+        user_oid:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: user_oid
+        sub_tasks:
+          items:
+            type: string
+          title: sub_tasks
+          type: array
+        retrieved_chunks:
+          items:
+            additionalProperties: true
+            type: object
+          title: retrieved_chunks
+          type: array
+        answer:
+          title: answer
+          type: string
+        citations:
+          items:
+            additionalProperties: true
+            type: object
+          title: citations
+          type: array
+        trace:
+          $ref: '#/$defs/TraceContext'
+          title: trace
+      required:
+      - query
+      - session_context
+      - user_oid
+      - sub_tasks
+      - retrieved_chunks
+      - answer
+      - citations
+      - trace
+      title: state
+      type: object
+    outputs:
+    - $defs:
+        StepRecord:
+          properties:
+            node_name:
+              title: Node Name
+              type: string
+            input_hash:
+              title: Input Hash
+              type: string
+            tool_calls:
+              items:
+                type: string
+              title: Tool Calls
+              type: array
+            output_hash:
+              title: Output Hash
+              type: string
+            latency_ms:
+              title: Latency Ms
+              type: number
+            timestamp:
+              title: Timestamp
+              type: string
+          required:
+          - node_name
+          - input_hash
+          - tool_calls
+          - output_hash
+          - latency_ms
+          title: StepRecord
+          type: object
+        TraceContext:
+          properties:
+            trace_id:
+              title: Trace Id
+              type: string
+            step_log:
+              items:
+                $ref: '#/$defs/StepRecord'
+              title: Step Log
+              type: array
+          title: TraceContext
+          type: object
+      properties:
+        query:
+          title: query
+          type: string
+        session_context:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: session_context
+        user_oid:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: user_oid
+        sub_tasks:
+          items:
+            type: string
+          title: sub_tasks
+          type: array
+        retrieved_chunks:
+          items:
+            additionalProperties: true
+            type: object
+          title: retrieved_chunks
+          type: array
+        answer:
+          title: answer
+          type: string
+        citations:
+          items:
+            additionalProperties: true
+            type: object
+          title: citations
+          type: array
+        trace:
+          $ref: '#/$defs/TraceContext'
+          title: trace
+      required:
+      - query
+      - session_context
+      - user_oid
+      - sub_tasks
+      - retrieved_chunks
+      - answer
+      - citations
+      - trace
+      title: state
+      type: object
+    branches:
+    - next
+    tool:
+      component_type: ServerTool
+      id: 275dce3e-e266-4e84-a5c1-22e9484f3406
+      name: retriever_tool
+      description: null
+      metadata: {}
+      inputs:
+      - $defs:
+          StepRecord:
+            properties:
+              node_name:
+                title: Node Name
+                type: string
+              input_hash:
+                title: Input Hash
+                type: string
+              tool_calls:
+                items:
+                  type: string
+                title: Tool Calls
+                type: array
+              output_hash:
+                title: Output Hash
+                type: string
+              latency_ms:
+                title: Latency Ms
+                type: number
+              timestamp:
+                title: Timestamp
+                type: string
+            required:
+            - node_name
+            - input_hash
+            - tool_calls
+            - output_hash
+            - latency_ms
+            title: StepRecord
+            type: object
+          TraceContext:
+            properties:
+              trace_id:
+                title: Trace Id
+                type: string
+              step_log:
+                items:
+                  $ref: '#/$defs/StepRecord'
+                title: Step Log
+                type: array
+            title: TraceContext
+            type: object
+        properties:
+          query:
+            title: query
+            type: string
+          session_context:
+            anyOf:
+            - additionalProperties: true
+              type: object
+            - type: 'null'
+            title: session_context
+          user_oid:
+            anyOf:
+            - type: string
+            - type: 'null'
+            title: user_oid
+          sub_tasks:
+            items:
+              type: string
+            title: sub_tasks
+            type: array
+          retrieved_chunks:
+            items:
+              additionalProperties: true
+              type: object
+            title: retrieved_chunks
+            type: array
+          answer:
+            title: answer
+            type: string
+          citations:
+            items:
+              additionalProperties: true
+              type: object
+            title: citations
+            type: array
+          trace:
+            $ref: '#/$defs/TraceContext'
+            title: trace
+        required:
+        - query
+        - session_context
+        - user_oid
+        - sub_tasks
+        - retrieved_chunks
+        - answer
+        - citations
+        - trace
+        title: state
+        type: object
+      outputs:
+      - $defs:
+          StepRecord:
+            properties:
+              node_name:
+                title: Node Name
+                type: string
+              input_hash:
+                title: Input Hash
+                type: string
+              tool_calls:
+                items:
+                  type: string
+                title: Tool Calls
+                type: array
+              output_hash:
+                title: Output Hash
+                type: string
+              latency_ms:
+                title: Latency Ms
+                type: number
+              timestamp:
+                title: Timestamp
+                type: string
+            required:
+            - node_name
+            - input_hash
+            - tool_calls
+            - output_hash
+            - latency_ms
+            title: StepRecord
+            type: object
+          TraceContext:
+            properties:
+              trace_id:
+                title: Trace Id
+                type: string
+              step_log:
+                items:
+                  $ref: '#/$defs/StepRecord'
+                title: Step Log
+                type: array
+            title: TraceContext
+            type: object
+        properties:
+          query:
+            title: query
+            type: string
+          session_context:
+            anyOf:
+            - additionalProperties: true
+              type: object
+            - type: 'null'
+            title: session_context
+          user_oid:
+            anyOf:
+            - type: string
+            - type: 'null'
+            title: user_oid
+          sub_tasks:
+            items:
+              type: string
+            title: sub_tasks
+            type: array
+          retrieved_chunks:
+            items:
+              additionalProperties: true
+              type: object
+            title: retrieved_chunks
+            type: array
+          answer:
+            title: answer
+            type: string
+          citations:
+            items:
+              additionalProperties: true
+              type: object
+            title: citations
+            type: array
+          trace:
+            $ref: '#/$defs/TraceContext'
+            title: trace
+        required:
+        - query
+        - session_context
+        - user_oid
+        - sub_tasks
+        - retrieved_chunks
+        - answer
+        - citations
+        - trace
+        title: state
+        type: object
+  c831ffc9-b83f-4583-b2f7-b0e38b1c185f:
+    component_type: EndNode
+    id: c831ffc9-b83f-4583-b2f7-b0e38b1c185f
+    name: __end__
+    description: null
+    metadata: {}
+    inputs:
+    - $defs:
+        StepRecord:
+          properties:
+            node_name:
+              title: Node Name
+              type: string
+            input_hash:
+              title: Input Hash
+              type: string
+            tool_calls:
+              items:
+                type: string
+              title: Tool Calls
+              type: array
+            output_hash:
+              title: Output Hash
+              type: string
+            latency_ms:
+              title: Latency Ms
+              type: number
+            timestamp:
+              title: Timestamp
+              type: string
+          required:
+          - node_name
+          - input_hash
+          - tool_calls
+          - output_hash
+          - latency_ms
+          title: StepRecord
+          type: object
+        TraceContext:
+          properties:
+            trace_id:
+              title: Trace Id
+              type: string
+            step_log:
+              items:
+                $ref: '#/$defs/StepRecord'
+              title: Step Log
+              type: array
+          title: TraceContext
+          type: object
+      properties:
+        query:
+          title: query
+          type: string
+        session_context:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: session_context
+        user_oid:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: user_oid
+        sub_tasks:
+          items:
+            type: string
+          title: sub_tasks
+          type: array
+        retrieved_chunks:
+          items:
+            additionalProperties: true
+            type: object
+          title: retrieved_chunks
+          type: array
+        answer:
+          title: answer
+          type: string
+        citations:
+          items:
+            additionalProperties: true
+            type: object
+          title: citations
+          type: array
+        trace:
+          $ref: '#/$defs/TraceContext'
+          title: trace
+      required:
+      - query
+      - session_context
+      - user_oid
+      - sub_tasks
+      - retrieved_chunks
+      - answer
+      - citations
+      - trace
+      title: state
+      type: object
+    outputs:
+    - $defs:
+        StepRecord:
+          properties:
+            node_name:
+              title: Node Name
+              type: string
+            input_hash:
+              title: Input Hash
+              type: string
+            tool_calls:
+              items:
+                type: string
+              title: Tool Calls
+              type: array
+            output_hash:
+              title: Output Hash
+              type: string
+            latency_ms:
+              title: Latency Ms
+              type: number
+            timestamp:
+              title: Timestamp
+              type: string
+          required:
+          - node_name
+          - input_hash
+          - tool_calls
+          - output_hash
+          - latency_ms
+          title: StepRecord
+          type: object
+        TraceContext:
+          properties:
+            trace_id:
+              title: Trace Id
+              type: string
+            step_log:
+              items:
+                $ref: '#/$defs/StepRecord'
+              title: Step Log
+              type: array
+          title: TraceContext
+          type: object
+      properties:
+        query:
+          title: query
+          type: string
+        session_context:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: session_context
+        user_oid:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: user_oid
+        sub_tasks:
+          items:
+            type: string
+          title: sub_tasks
+          type: array
+        retrieved_chunks:
+          items:
+            additionalProperties: true
+            type: object
+          title: retrieved_chunks
+          type: array
+        answer:
+          title: answer
+          type: string
+        citations:
+          items:
+            additionalProperties: true
+            type: object
+          title: citations
+          type: array
+        trace:
+          $ref: '#/$defs/TraceContext'
+          title: trace
+      required:
+      - query
+      - session_context
+      - user_oid
+      - sub_tasks
+      - retrieved_chunks
+      - answer
+      - citations
+      - trace
+      title: state
+      type: object
+    branches: []
+    branch_name: next
+agentspec_version: 25.4.1
