@@ -17,14 +17,16 @@ LLM LAYER:
 
 import time
 from pathlib import Path
+from typing import Any
 
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import Runnable
 from langchain_openai import AzureChatOpenAI
 
 from agent.state import AgentState, StepRecord
 from agent.tools.manifests import PLANNER_MANIFEST  # noqa: F401 — manifest declared, no tools used
-from api.config import get_settings
+from api.config import Settings, get_settings
 
 _PROMPT_PATH = Path(__file__).parent.parent / "prompts" / "planner_system.txt"
 _system_prompt: str | None = None
@@ -37,7 +39,7 @@ def _get_system_prompt() -> str:
     return _system_prompt
 
 
-def _build_user_message(query: str, session_context: dict | None) -> str:
+def _build_user_message(query: str, session_context: dict[str, Any] | None) -> str:
     if session_context:
         return (
             f"Session context:\n"
@@ -48,7 +50,7 @@ def _build_user_message(query: str, session_context: dict | None) -> str:
     return query
 
 
-def _build_chain(settings):
+def _build_chain(settings: Settings) -> Runnable[dict[str, Any], Any]:
     """
     Build the LCEL chain: ChatPromptTemplate | AzureChatOpenAI | JsonOutputParser.
 
@@ -60,7 +62,7 @@ def _build_chain(settings):
         azure_deployment=settings.openai_deployment,
         api_version="2024-02-01",
         temperature=settings.model_temperature,
-        max_tokens=256,
+        model_kwargs={"max_tokens": 256},
     )
     prompt = ChatPromptTemplate.from_messages([
         ("system", "{system_prompt}"),
@@ -108,8 +110,8 @@ async def planner_node(state: AgentState) -> AgentState:
 
 async def _decompose_query(
     query: str,
-    session_context: dict | None,
-    settings,
+    session_context: dict[str, Any] | None,
+    settings: Settings,
 ) -> list[str]:
     """
     Use LangChain LCEL to decompose the query into retrieval sub-tasks.

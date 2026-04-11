@@ -31,6 +31,7 @@ Eval     : offline harness, golden_questions.json, p50/p95/refusal metrics
 - ADR-005: Prompt hash-pinning — prompts.lock, ADR bump required before any change
 - ADR-006: Streaming — FastAPI StreamingResponse + Azure OpenAI stream=True
 - ADR-007: Session memory — TTL=1800s, keyed by session_id, no cross-session leakage
+- ADR-011: Studio integration — aiPolaris query mode in Meridian Studio UI. VITE_AIPOLARIS_URL never hardcoded. Trace data memory-only, never localStorage. AUTH_ENABLED=false for this phase.
 
 ## Role-specific rules
 
