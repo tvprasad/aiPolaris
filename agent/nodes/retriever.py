@@ -59,7 +59,7 @@ async def retriever_node(state: AgentState) -> AgentState:
     return state
 
 
-async def _search_index(sub_tasks: list[str]) -> list[dict]:
+async def _search_index(sub_tasks: list[str]) -> list[dict[str, object]]:
     """
     Execute hybrid semantic search for each sub-task against Azure AI Search.
     Deduplicates results by source document. Returns top-K chunks above
@@ -77,13 +77,13 @@ async def _search_index(sub_tasks: list[str]) -> list[dict]:
         return []
 
     credential = DefaultAzureCredential()
-    all_chunks: list[dict] = []
+    all_chunks: list[dict[str, object]] = []
     seen_sources: set[str] = set()
 
     async with SearchClient(
         endpoint=settings.search_endpoint,
         index_name=settings.search_index_name,
-        credential=credential,
+        credential=credential,  # type: ignore[arg-type]  # azure-identity stubs omit AsyncTokenCredential protocol
     ) as client:
         for query_text in sub_tasks:
             results = await client.search(
@@ -105,14 +105,16 @@ async def _search_index(sub_tasks: list[str]) -> list[dict]:
                     continue
                 seen_sources.add(source)
 
-                all_chunks.append({
-                    "title": result.get("title", ""),
-                    "content": result.get("content", ""),
-                    "source": source,
-                    "last_modified": result.get("last_modified", ""),
-                    "reranker_score": round(reranker_score, 4),
-                })
+                all_chunks.append(
+                    {
+                        "title": result.get("title", ""),
+                        "content": result.get("content", ""),
+                        "source": source,
+                        "last_modified": result.get("last_modified", ""),
+                        "reranker_score": round(reranker_score, 4),
+                    }
+                )
 
     # Sort by reranker score descending, return top K overall
-    all_chunks.sort(key=lambda c: c["reranker_score"], reverse=True)
+    all_chunks.sort(key=lambda c: float(c["reranker_score"]), reverse=True)  # type: ignore[arg-type]
     return all_chunks[:_TOP_K]

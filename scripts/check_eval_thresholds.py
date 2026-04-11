@@ -45,8 +45,7 @@ def check_thresholds(
 
     if p95_latency_ms > max_p95_latency:
         violations.append(
-            f"FAIL p95_latency_ms={p95_latency_ms:.0f} "
-            f"exceeds max={max_p95_latency:.0f}ms"
+            f"FAIL p95_latency_ms={p95_latency_ms:.0f} exceeds max={max_p95_latency:.0f}ms"
         )
 
     return violations

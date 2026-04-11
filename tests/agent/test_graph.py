@@ -2,7 +2,6 @@
 tests/agent/test_graph.py — Unit tests for graph factory and initial state creation.
 """
 
-import pytest
 from langgraph.graph import StateGraph
 
 from agent.graph import build_graph, create_initial_state, graph

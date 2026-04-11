@@ -18,7 +18,7 @@ router = APIRouter()
 async def ingest(
     request: Request,
     body: IngestRequest,
-    _: dict = Depends(require_capability("ingest")),
+    _: dict[str, object] = Depends(require_capability("ingest")),
 ) -> IngestResponse:
     """
     Trigger Graph API pull → ADLS staging → AI Search indexing.

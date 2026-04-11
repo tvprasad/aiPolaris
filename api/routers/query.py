@@ -13,13 +13,15 @@ Auth required: user role minimum (RBAC middleware).
 import json
 import time
 import uuid
-from typing import Any, AsyncGenerator
+from collections.abc import AsyncGenerator
+from typing import Any
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
 
 from agent.graph import create_initial_state, graph
 from agent.memory.session import session_store
+from agent.state import AgentState
 from api.middleware.rbac import require_capability
 from api.schemas import QueryRequest
 
@@ -65,10 +67,10 @@ class _JsonAnswerExtractor:
             idx = self._buf.find(self._MARKER)
             if idx == -1:
                 # Keep rolling tail so marker can span chunk boundaries
-                self._buf = self._buf[-(len(self._MARKER) - 1):]
+                self._buf = self._buf[-(len(self._MARKER) - 1) :]
                 return ""
             # Marker found — advance past it
-            self._buf = self._buf[idx + len(self._MARKER):]
+            self._buf = self._buf[idx + len(self._MARKER) :]
             self._state = "AWAITING_QUOTE"
 
         if self._state == "AWAITING_QUOTE":
@@ -77,7 +79,7 @@ class _JsonAnswerExtractor:
                 # Opening quote not yet in buffer — keep everything
                 return ""
             # Opening quote found — enter value
-            self._buf = self._buf[quote_idx + 1:]  # chars after opening quote
+            self._buf = self._buf[quote_idx + 1 :]  # chars after opening quote
             self._state = "IN_VALUE"
 
         if self._state == "IN_VALUE":
@@ -119,7 +121,7 @@ class _JsonAnswerExtractor:
 async def query(
     request: Request,
     body: QueryRequest,
-    _: dict = Depends(require_capability("query")),
+    _: dict[str, object] = Depends(require_capability("query")),
 ) -> StreamingResponse:
     """
     Run a query through the Planner → Retriever → Synthesizer graph.
@@ -147,7 +149,7 @@ async def query(
 
 
 async def _stream_response(
-    initial_state: dict,
+    initial_state: "AgentState",
     session_id: str,
     original_query: str,
 ) -> AsyncGenerator[str, None]:
@@ -188,7 +190,7 @@ async def _stream_response(
 
             # ── Synthesizer completion — captures citations + trace ────────────
             elif kind == "on_chain_end" and event.get("name") == "synthesizer":
-                output: dict = event["data"].get("output", {})
+                output: dict[str, Any] = event["data"].get("output", {})
                 citations = output.get("citations", [])
                 retrieved_chunks = output.get("retrieved_chunks", [])
                 trace = output.get("trace")

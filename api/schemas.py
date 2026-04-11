@@ -3,13 +3,12 @@ api/schemas.py — Pydantic request/response models.
 All endpoints use these schemas. Never use raw dicts in route handlers.
 """
 
-from typing import Optional
 from pydantic import BaseModel, Field
 
 
 class QueryRequest(BaseModel):
     query: str = Field(..., min_length=1, max_length=2000)
-    session_id: Optional[str] = Field(None, description="UUID — creates new session if absent")
+    session_id: str | None = Field(None, description="UUID — creates new session if absent")
 
 
 class CitationModel(BaseModel):

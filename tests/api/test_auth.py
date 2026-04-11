@@ -7,7 +7,6 @@ Tests here exercise that path and the lifespan startup/shutdown.
 
 from unittest.mock import MagicMock
 
-import pytest
 from fastapi.testclient import TestClient
 
 from api.main import app
@@ -32,6 +31,7 @@ class TestValidateTokenDevBypass:
 class TestValidateJwt:
     def test_stub_returns_dict(self) -> None:
         from api.config import get_settings
+
         settings = get_settings()
         result = _validate_jwt("any-token", settings)
         assert result is not None

@@ -9,6 +9,7 @@ Never read secrets from environment variables — Key Vault only.
 """
 
 from functools import lru_cache
+
 from pydantic_settings import BaseSettings
 
 

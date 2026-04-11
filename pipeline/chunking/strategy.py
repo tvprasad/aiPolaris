@@ -9,7 +9,6 @@ what the model can reason about. ADR-005 was written after diagnosing
 Meridian's 59% refusal rate on technical queries back to coarse chunking.
 """
 
-import hashlib
 import uuid
 from dataclasses import dataclass
 
@@ -66,10 +65,9 @@ class OverlappingWindowChunker:
         if not content or not content.strip():
             return []
 
-        target_chars   = self.TARGET_TOKENS   * self.CHARS_PER_TOKEN
-        overlap_chars  = int(target_chars * self.OVERLAP_RATIO)
-        min_chars      = self.MIN_TOKENS      * self.CHARS_PER_TOKEN
-        max_chars      = self.MAX_TOKENS      * self.CHARS_PER_TOKEN
+        target_chars = self.TARGET_TOKENS * self.CHARS_PER_TOKEN
+        overlap_chars = int(target_chars * self.OVERLAP_RATIO)
+        min_chars = self.MIN_TOKENS * self.CHARS_PER_TOKEN
 
         chunks: list[Chunk] = []
         start = 0
@@ -102,17 +100,19 @@ class OverlappingWindowChunker:
                     char_count=len(merged_content),
                 )
             elif chunk_text:
-                chunks.append(Chunk(
-                    chunk_id=str(uuid.uuid4()),
-                    content=chunk_text,
-                    chunk_index=index,
-                    source_doc_id=source_doc_id,
-                    document_title=document_title,
-                    site_id=site_id,
-                    pull_id=pull_id,
-                    token_count=len(chunk_text) // self.CHARS_PER_TOKEN,
-                    char_count=len(chunk_text),
-                ))
+                chunks.append(
+                    Chunk(
+                        chunk_id=str(uuid.uuid4()),
+                        content=chunk_text,
+                        chunk_index=index,
+                        source_doc_id=source_doc_id,
+                        document_title=document_title,
+                        site_id=site_id,
+                        pull_id=pull_id,
+                        token_count=len(chunk_text) // self.CHARS_PER_TOKEN,
+                        char_count=len(chunk_text),
+                    )
+                )
                 index += 1
 
             # Advance with overlap — stop if we've processed to end of document

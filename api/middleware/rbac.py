@@ -10,27 +10,32 @@ SECURITY NOTE: Run challenge mode after any change.
  role escalation, missing scope check on /ingest."
 """
 
+from typing import Any, cast
+
 from fastapi import Depends, HTTPException, Request, status
 
 from api.middleware.auth import validate_token
 
-
 # Role → capability mapping
 # Add new roles here — never inline in route handlers
 ROLE_CAPABILITIES: dict[str, list[str]] = {
-    "user":     ["query"],
+    "user": ["query"],
     "operator": ["query", "ingest", "settings"],
-    "admin":    ["query", "ingest", "settings", "eval", "audit"],
+    "admin": ["query", "ingest", "settings", "eval", "audit"],
 }
 
 
-def require_capability(capability: str):
+def require_capability(capability: str) -> Any:
     """
     FastAPI dependency factory.
     Usage: Depends(require_capability("ingest"))
     """
-    async def _check(request: Request, claims: dict = Depends(validate_token)):
-        roles: list[str] = claims.get("roles", [])
+
+    async def _check(
+        request: Request,
+        claims: dict[str, object] = Depends(validate_token),
+    ) -> dict[str, object]:
+        roles: list[str] = cast(list[str], claims.get("roles", []))
         allowed = _get_capabilities(roles)
 
         if capability not in allowed:
@@ -62,7 +67,4 @@ def _get_capabilities(roles: list[str]) -> set[str]:
 
 def _roles_with_capability(capability: str) -> list[str]:
     """Which roles grant a given capability — used in error messages."""
-    return [
-        role for role, caps in ROLE_CAPABILITIES.items()
-        if capability in caps
-    ]
+    return [role for role, caps in ROLE_CAPABILITIES.items() if capability in caps]

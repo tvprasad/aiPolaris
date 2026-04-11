@@ -5,19 +5,17 @@ Tests _get_capabilities and _roles_with_capability directly (pure functions),
 plus the require_capability dependency via FastAPI dependency_overrides.
 """
 
-import pytest
 from fastapi.testclient import TestClient
 
 from api.main import app
 from api.middleware.auth import validate_token
 from api.middleware.rbac import (
-    ROLE_CAPABILITIES,
     _get_capabilities,
     _roles_with_capability,
 )
 
-
 # ── Pure function tests ───────────────────────────────────────────────────────
+
 
 class TestGetCapabilities:
     def test_user_role_grants_query(self) -> None:
@@ -71,6 +69,7 @@ class TestRolesWithCapability:
 
 
 # ── Dependency override tests (require_capability) ───────────────────────────
+
 
 def _make_operator_claims() -> dict:
     return {"roles": ["operator"], "oid": "user-oid-123", "name": "Test Operator"}

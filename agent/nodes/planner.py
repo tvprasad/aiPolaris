@@ -64,10 +64,12 @@ def _build_chain(settings: Settings) -> Runnable[dict[str, Any], Any]:
         temperature=settings.model_temperature,
         model_kwargs={"max_tokens": 256},
     )
-    prompt = ChatPromptTemplate.from_messages([
-        ("system", "{system_prompt}"),
-        ("human", "{user_message}"),
-    ])
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", "{system_prompt}"),
+            ("human", "{user_message}"),
+        ]
+    )
     return prompt | llm | JsonOutputParser()
 
 
@@ -123,10 +125,12 @@ async def _decompose_query(
     chain = _build_chain(settings)
 
     try:
-        result = await chain.ainvoke({
-            "system_prompt": _get_system_prompt(),
-            "user_message": _build_user_message(query, session_context),
-        })
+        result = await chain.ainvoke(
+            {
+                "system_prompt": _get_system_prompt(),
+                "user_message": _build_user_message(query, session_context),
+            }
+        )
 
         if isinstance(result, list) and all(isinstance(t, str) for t in result):
             return result[:4]  # enforce max 4 per prompt spec

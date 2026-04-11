@@ -4,8 +4,6 @@ tests/agent/test_state.py — Unit tests for AgentState, TraceContext, StepRecor
 
 import uuid
 
-import pytest
-
 from agent.state import AgentState, StepRecord, TraceContext
 
 

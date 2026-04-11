@@ -19,7 +19,7 @@ class SessionEntry:
     session_id: str
     last_query: str
     last_answer: str
-    last_chunks: list[dict]
+    last_chunks: list[dict[str, object]]
     created_at: float = field(default_factory=time.time)
     last_accessed: float = field(default_factory=time.time)
 
@@ -34,7 +34,7 @@ class InMemorySessionStore:
         self._store: dict[str, SessionEntry] = {}
         self._ttl = ttl_seconds
 
-    def get(self, session_id: str) -> dict | None:
+    def get(self, session_id: str) -> dict[str, object] | None:
         """Return session context if exists and not expired."""
         entry = self._store.get(session_id)
         if entry is None:
@@ -54,7 +54,7 @@ class InMemorySessionStore:
         session_id: str,
         query: str,
         answer: str,
-        chunks: list[dict],
+        chunks: list[dict[str, object]],
     ) -> None:
         """Store or update session context after a completed graph invocation."""
         self._store[session_id] = SessionEntry(
@@ -71,10 +71,7 @@ class InMemorySessionStore:
     def _purge_expired(self) -> int:
         """Remove all expired entries. Returns count removed."""
         now = time.time()
-        expired = [
-            k for k, v in self._store.items()
-            if now - v.last_accessed > self._ttl
-        ]
+        expired = [k for k, v in self._store.items() if now - v.last_accessed > self._ttl]
         for k in expired:
             del self._store[k]
         return len(expired)

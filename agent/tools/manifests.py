@@ -29,6 +29,7 @@ class CapabilityViolationError(Exception):
                 f"Allowed: {manifest['allowed_tools']}"
             )
     """
+
     pass
 
 

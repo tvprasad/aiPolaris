@@ -27,7 +27,10 @@ async def test_planner_single_subtask():
     """Simple query should return as a single sub-task."""
     state = _make_state("What is the data retention policy?")
 
-    with patch("agent.nodes.planner._decompose_query", new=AsyncMock(return_value=["data retention policy"])):
+    with patch(
+        "agent.nodes.planner._decompose_query",
+        new=AsyncMock(return_value=["data retention policy"]),
+    ):
         result = await planner_node(state)
 
     assert result["sub_tasks"] == ["data retention policy"]
@@ -36,7 +39,9 @@ async def test_planner_single_subtask():
 @pytest.mark.asyncio
 async def test_planner_multi_subtask():
     """Complex query should be decomposed into multiple sub-tasks."""
-    state = _make_state("How does Meridian integrate with ServiceNow and what are the prerequisites?")
+    state = _make_state(
+        "How does Meridian integrate with ServiceNow and what are the prerequisites?"
+    )
     sub_tasks = ["Meridian ServiceNow integration", "Meridian ServiceNow prerequisites"]
 
     with patch("agent.nodes.planner._decompose_query", new=AsyncMock(return_value=sub_tasks)):
@@ -96,11 +101,14 @@ async def test_planner_session_context_passed():
     state = _make_state("How does it handle authentication?", session_context=session_context)
     sub_tasks = ["Meridian authentication", "Meridian Entra ID"]
 
-    with patch("agent.nodes.planner._decompose_query", new=AsyncMock(return_value=sub_tasks)) as mock_decompose:
+    with patch(
+        "agent.nodes.planner._decompose_query", new=AsyncMock(return_value=sub_tasks)
+    ) as mock_decompose:
         result = await planner_node(state)
         mock_decompose.assert_called_once()
         call_kwargs = mock_decompose.call_args
-        assert call_kwargs.kwargs.get("session_context") == session_context or \
-               (call_kwargs.args and call_kwargs.args[1] == session_context)
+        assert call_kwargs.kwargs.get("session_context") == session_context or (
+            call_kwargs.args and call_kwargs.args[1] == session_context
+        )
 
     assert result["sub_tasks"] == sub_tasks

@@ -8,6 +8,8 @@ To visualize the graph:
     # or: make graph-viz
 """
 
+from typing import Any
+
 from langgraph.graph import END, StateGraph
 
 from agent.nodes.planner import planner_node
@@ -16,7 +18,7 @@ from agent.nodes.synthesizer import synthesizer_node
 from agent.state import AgentState, TraceContext
 
 
-def build_graph() -> StateGraph:
+def build_graph() -> "StateGraph[AgentState, Any, Any, Any]":
     """
     Build the Planner → Retriever → Synthesizer DAG.
 
@@ -40,7 +42,7 @@ def build_graph() -> StateGraph:
 
 def create_initial_state(
     query: str,
-    session_context: dict | None = None,
+    session_context: dict[str, object] | None = None,
     user_oid: str | None = None,
 ) -> AgentState:
     """

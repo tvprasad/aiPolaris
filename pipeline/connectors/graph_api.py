@@ -44,7 +44,7 @@ class GraphAPIConnector:
         "https://graph.microsoft.com/Files.Read.All",
     ]
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._settings = get_settings()
         self._client = None  # lazy init after Key Vault fetch
 
@@ -76,7 +76,9 @@ class GraphAPIConnector:
 
         documents: list[DocumentMetadata] = []
         elapsed = (time.perf_counter() - start) * 1000
-        print(f"[GraphAPI] pull_id={pull_id} site={site_id} docs={len(documents)} latency={elapsed:.0f}ms")
+        print(
+            f"[GraphAPI] pull_id={pull_id} site={site_id} docs={len(documents)} latency={elapsed:.0f}ms"
+        )
 
         return documents
 

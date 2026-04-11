@@ -31,7 +31,9 @@ from api.config import Settings, get_settings
 _PROMPT_PATH = Path(__file__).parent.parent / "prompts" / "synthesizer_system.txt"
 _system_prompt: str | None = None
 
-_INSUFFICIENT = "I don't have enough information in my knowledge base to answer this question accurately."
+_INSUFFICIENT = (
+    "I don't have enough information in my knowledge base to answer this question accurately."
+)
 
 
 def _get_system_prompt() -> str:
@@ -41,7 +43,9 @@ def _get_system_prompt() -> str:
     return _system_prompt
 
 
-def _build_user_message(query: str, chunks: list[dict[str, Any]], session_context: dict[str, Any] | None) -> str:
+def _build_user_message(
+    query: str, chunks: list[dict[str, Any]], session_context: dict[str, Any] | None
+) -> str:
     chunks_text = "\n\n".join(
         f"[{i + 1}] Title: {c.get('title', 'Unknown')}\n"
         f"Source: {c.get('source', '')}\n"
@@ -57,11 +61,7 @@ def _build_user_message(query: str, chunks: list[dict[str, Any]], session_contex
             f"Prior answer: {session_context.get('last_answer', '')}\n\n"
         )
 
-    return (
-        f"{context_block}"
-        f"User query: {query}\n\n"
-        f"Retrieved chunks:\n{chunks_text}"
-    )
+    return f"{context_block}User query: {query}\n\nRetrieved chunks:\n{chunks_text}"
 
 
 def _build_chain(settings: Settings) -> Runnable[dict[str, Any], Any]:
@@ -78,10 +78,12 @@ def _build_chain(settings: Settings) -> Runnable[dict[str, Any], Any]:
         temperature=settings.model_temperature,
         model_kwargs={"max_tokens": settings.max_tokens},
     )
-    prompt = ChatPromptTemplate.from_messages([
-        ("system", "{system_prompt}"),
-        ("human", "{user_message}"),
-    ])
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", "{system_prompt}"),
+            ("human", "{user_message}"),
+        ]
+    )
     return prompt | llm | JsonOutputParser()
 
 
@@ -150,10 +152,12 @@ async def _synthesize(
     chain = _build_chain(settings)
 
     try:
-        parsed = await chain.ainvoke({
-            "system_prompt": _get_system_prompt(),
-            "user_message": _build_user_message(query, chunks, session_context),
-        })
+        parsed = await chain.ainvoke(
+            {
+                "system_prompt": _get_system_prompt(),
+                "user_message": _build_user_message(query, chunks, session_context),
+            }
+        )
 
         answer: str = parsed.get("answer", "")
         citations: list[dict[str, Any]] = parsed.get("citations", [])

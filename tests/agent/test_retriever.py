@@ -86,19 +86,33 @@ async def test_search_index_filters_below_threshold():
     """_search_index filters results below reranker score threshold."""
     from agent.nodes.retriever import _search_index
 
-    high = {"title": "High", "content": "c", "source": "h.pdf", "last_modified": "", "@search.reranker_score": 0.90}
-    low = {"title": "Low", "content": "c", "source": "l.pdf", "last_modified": "", "@search.reranker_score": 0.30}
+    high = {
+        "title": "High",
+        "content": "c",
+        "source": "h.pdf",
+        "last_modified": "",
+        "@search.reranker_score": 0.90,
+    }
+    low = {
+        "title": "Low",
+        "content": "c",
+        "source": "l.pdf",
+        "last_modified": "",
+        "@search.reranker_score": 0.30,
+    }
 
     async def mock_search_results(*a, **k):
         for r in [high, low]:
             yield r
 
-    with patch("azure.identity.DefaultAzureCredential"), \
-         patch("azure.search.documents.aio.SearchClient") as MockClient:
+    with (
+        patch("azure.identity.DefaultAzureCredential"),
+        patch("azure.search.documents.aio.SearchClient") as mock_client,
+    ):
         mock_instance = AsyncMock()
         mock_instance.search.return_value = mock_search_results()
-        MockClient.return_value.__aenter__ = AsyncMock(return_value=mock_instance)
-        MockClient.return_value.__aexit__ = AsyncMock(return_value=None)
+        mock_client.return_value.__aenter__ = AsyncMock(return_value=mock_instance)
+        mock_client.return_value.__aexit__ = AsyncMock(return_value=None)
 
         with patch("agent.nodes.retriever.get_settings") as mock_cfg:
             mock_cfg.return_value.search_endpoint = "https://fake.search.windows.net"
@@ -116,8 +130,20 @@ async def test_search_index_deduplicates_by_source():
     """_search_index deduplicates results with the same source."""
     from agent.nodes.retriever import _search_index
 
-    dup_a = {"title": "Doc", "content": "c", "source": "doc.pdf", "last_modified": "", "@search.reranker_score": 0.90}
-    dup_b = {"title": "Doc", "content": "c", "source": "doc.pdf", "last_modified": "", "@search.reranker_score": 0.85}
+    dup_a = {
+        "title": "Doc",
+        "content": "c",
+        "source": "doc.pdf",
+        "last_modified": "",
+        "@search.reranker_score": 0.90,
+    }
+    dup_b = {
+        "title": "Doc",
+        "content": "c",
+        "source": "doc.pdf",
+        "last_modified": "",
+        "@search.reranker_score": 0.85,
+    }
 
     call_count = 0
 
@@ -129,12 +155,14 @@ async def test_search_index_deduplicates_by_source():
         else:
             yield dup_b
 
-    with patch("azure.identity.DefaultAzureCredential"), \
-         patch("azure.search.documents.aio.SearchClient") as MockClient:
+    with (
+        patch("azure.identity.DefaultAzureCredential"),
+        patch("azure.search.documents.aio.SearchClient") as mock_client,
+    ):
         mock_instance = AsyncMock()
         mock_instance.search.side_effect = lambda *a, **k: mock_results()
-        MockClient.return_value.__aenter__ = AsyncMock(return_value=mock_instance)
-        MockClient.return_value.__aexit__ = AsyncMock(return_value=None)
+        mock_client.return_value.__aenter__ = AsyncMock(return_value=mock_instance)
+        mock_client.return_value.__aexit__ = AsyncMock(return_value=None)
 
         with patch("agent.nodes.retriever.get_settings") as mock_cfg:
             mock_cfg.return_value.search_endpoint = "https://fake.search.windows.net"

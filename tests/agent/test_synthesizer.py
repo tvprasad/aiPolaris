@@ -45,10 +45,14 @@ async def test_synthesizer_returns_answer_and_citations():
     chunks = _make_chunks(2)
     state = _make_state("What is the retention policy?", chunks)
 
-    citations = [{"title": "Document 0", "source": "doc_0.pdf", "excerpt": "Content about topic 0."}]
+    citations = [
+        {"title": "Document 0", "source": "doc_0.pdf", "excerpt": "Content about topic 0."}
+    ]
     answer = "The retention policy is 7 years [Document 0]."
 
-    with patch("agent.nodes.synthesizer._synthesize", new=AsyncMock(return_value=(answer, citations))):
+    with patch(
+        "agent.nodes.synthesizer._synthesize", new=AsyncMock(return_value=(answer, citations))
+    ):
         result = await synthesizer_node(state)
 
     assert "retention policy" in result["answer"]
@@ -75,7 +79,9 @@ async def test_synthesizer_structured_refusal_on_insufficient_context():
     chunks = _make_chunks(1)
     state = _make_state("What is the policy on Mars?", chunks)
 
-    with patch("agent.nodes.synthesizer._synthesize", new=AsyncMock(return_value=(_INSUFFICIENT, []))):
+    with patch(
+        "agent.nodes.synthesizer._synthesize", new=AsyncMock(return_value=(_INSUFFICIENT, []))
+    ):
         result = await synthesizer_node(state)
 
     assert result["answer"] == _INSUFFICIENT
@@ -88,7 +94,9 @@ async def test_synthesizer_json_parse_fallback():
     chunks = _make_chunks(1)
     state = _make_state("What is the policy?", chunks)
 
-    with patch("agent.nodes.synthesizer._synthesize", new=AsyncMock(return_value=(_INSUFFICIENT, []))):
+    with patch(
+        "agent.nodes.synthesizer._synthesize", new=AsyncMock(return_value=(_INSUFFICIENT, []))
+    ):
         result = await synthesizer_node(state)
 
     assert result["answer"] == _INSUFFICIENT
@@ -101,7 +109,9 @@ async def test_synthesizer_appends_step_record():
     chunks = _make_chunks(1)
     state = _make_state("Test query", chunks)
 
-    with patch("agent.nodes.synthesizer._synthesize", new=AsyncMock(return_value=("Test answer.", []))):
+    with patch(
+        "agent.nodes.synthesizer._synthesize", new=AsyncMock(return_value=("Test answer.", []))
+    ):
         result = await synthesizer_node(state)
 
     assert len(result["trace"].step_log) == 1

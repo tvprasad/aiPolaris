@@ -17,8 +17,8 @@ import hashlib
 import json
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Optional, TypedDict
+from datetime import UTC, datetime
+from typing import Any, TypedDict
 
 
 @dataclass
@@ -26,13 +26,11 @@ class StepRecord:
     """Immutable record of a single agent node execution. ADR-004."""
 
     node_name: str
-    input_hash: str        # sha256 of serialized node inputs
+    input_hash: str  # sha256 of serialized node inputs
     tool_calls: list[str]  # names of tools actually called ([] if none)
-    output_hash: str       # sha256 of serialized node outputs
+    output_hash: str  # sha256 of serialized node outputs
     latency_ms: float
-    timestamp: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     @staticmethod
     def hash_content(content: Any) -> str:
@@ -52,7 +50,7 @@ class TraceContext:
     trace_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     step_log: list[StepRecord] = field(default_factory=list)
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, object]:
         return {
             "trace_id": self.trace_id,
             "steps": [
@@ -86,18 +84,18 @@ class AgentState(TypedDict):
 
     # Input
     query: str
-    session_context: Optional[dict]   # from InMemorySessionStore (ADR-006)
-    user_oid: Optional[str]            # from Entra ID token (auth middleware)
+    session_context: dict[str, object] | None  # from InMemorySessionStore (ADR-006)
+    user_oid: str | None  # from Entra ID token (auth middleware)
 
     # Planner output
     sub_tasks: list[str]
 
     # Retriever output
-    retrieved_chunks: list[dict]
+    retrieved_chunks: list[dict[str, object]]
 
     # Synthesizer output
     answer: str
-    citations: list[dict]
+    citations: list[dict[str, object]]
 
     # Trace — all nodes append, never replace (ADR-004)
     trace: TraceContext

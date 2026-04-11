@@ -5,6 +5,7 @@ Returns environment and index status.
 """
 
 from fastapi import APIRouter
+
 from api.config import get_settings
 from api.schemas import HealthResponse
 

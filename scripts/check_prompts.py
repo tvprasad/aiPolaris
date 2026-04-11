@@ -17,9 +17,8 @@ import json
 import sys
 from pathlib import Path
 
-
-PROMPTS_DIR  = Path("agent/prompts")
-LOCK_FILE    = Path("prompts.lock")
+PROMPTS_DIR = Path("agent/prompts")
+LOCK_FILE = Path("prompts.lock")
 
 
 def hash_file(path: Path) -> str:
@@ -50,7 +49,9 @@ def main() -> int:
         if filename not in locked_hashes:
             errors.append(f"  NEW: {filename} — add to prompts.lock and create an ADR")
         elif locked_hashes[filename] != current_hash:
-            errors.append(f"  CHANGED: {filename} — update prompts.lock and create an ADR (ADR-008)")
+            errors.append(
+                f"  CHANGED: {filename} — update prompts.lock and create an ADR (ADR-008)"
+            )
 
     for filename in locked_hashes:
         if filename not in current_hashes:

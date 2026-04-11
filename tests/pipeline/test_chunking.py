@@ -4,8 +4,6 @@ tests/pipeline/test_chunking.py — Unit tests for OverlappingWindowChunker. ADR
 
 import uuid
 
-import pytest
-
 from pipeline.chunking.strategy import Chunk, OverlappingWindowChunker
 
 CHUNKER = OverlappingWindowChunker()
@@ -70,7 +68,7 @@ class TestSingleChunk:
 class TestMultipleChunks:
     def _long_content(self) -> str:
         # ~4000 chars — well over TARGET_TOKENS * CHARS_PER_TOKEN = 2048
-        return ("The enterprise policy document contains many sections. " * 80)
+        return "The enterprise policy document contains many sections. " * 80
 
     def test_long_text_produces_multiple_chunks(self) -> None:
         chunks = make_chunks(self._long_content())
@@ -93,7 +91,6 @@ class TestMultipleChunks:
         chunks = make_chunks(content)
         if len(chunks) >= 2:
             # End of chunk 0 overlaps with start of chunk 1
-            end_of_first = chunks[0].content[-50:]
             start_of_second = chunks[1].content[:50]
             # They share some content due to overlap window
             # (can't do exact string match because sentence boundary may vary)
@@ -109,7 +106,9 @@ class TestMultipleChunks:
 class TestShortChunkMerge:
     def test_tiny_trailing_text_merges_into_previous(self) -> None:
         # Build content where last segment is very short
-        target_chars = OverlappingWindowChunker.TARGET_TOKENS * OverlappingWindowChunker.CHARS_PER_TOKEN
+        target_chars = (
+            OverlappingWindowChunker.TARGET_TOKENS * OverlappingWindowChunker.CHARS_PER_TOKEN
+        )
         main_body = "A" * target_chars + " "
         tiny_tail = "Hi"  # well under MIN_TOKENS * CHARS_PER_TOKEN = 400 chars
         content = main_body + tiny_tail
@@ -123,7 +122,9 @@ class TestShortChunkMerge:
 class TestSentenceBoundary:
     def test_chunk_prefers_period_boundary(self) -> None:
         # Build a string with clear sentence boundaries near the target size
-        target_chars = OverlappingWindowChunker.TARGET_TOKENS * OverlappingWindowChunker.CHARS_PER_TOKEN
+        target_chars = (
+            OverlappingWindowChunker.TARGET_TOKENS * OverlappingWindowChunker.CHARS_PER_TOKEN
+        )
         sentence = "This is a well-formed sentence. "
         content = sentence * (target_chars // len(sentence) + 5)
         chunks = make_chunks(content)

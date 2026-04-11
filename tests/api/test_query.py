@@ -8,16 +8,14 @@ Strategy:
 """
 
 import json
-from typing import AsyncGenerator
-from unittest.mock import AsyncMock, MagicMock, patch
+from collections.abc import AsyncGenerator
+from unittest.mock import MagicMock, patch
 
-import pytest
 from fastapi.testclient import TestClient
 
 from api.main import app
 from api.middleware.auth import validate_token
 from api.routers.query import _JsonAnswerExtractor
-
 
 # ── _JsonAnswerExtractor unit tests ───────────────────────────────────────────
 
@@ -31,7 +29,7 @@ class TestJsonAnswerExtractor:
     def test_extracts_across_chunks(self) -> None:
         ex = _JsonAnswerExtractor()
         r1 = ex.feed('{"answer": "Hel')
-        r2 = ex.feed('lo wor')
+        r2 = ex.feed("lo wor")
         r3 = ex.feed('ld", "citations": []}')
         assert r1 + r2 + r3 == "Hello world"
 
@@ -48,11 +46,11 @@ class TestJsonAnswerExtractor:
 
     def test_stops_at_closing_quote(self) -> None:
         ex = _JsonAnswerExtractor()
-        r1 = ex.feed('{"answer": "Text", "citations": []}')
+        ex.feed('{"answer": "Text", "citations": []}')
         # After closing quote, done is True
         assert ex.done
         # No more output after done
-        r2 = ex.feed('extra stuff')
+        r2 = ex.feed("extra stuff")
         assert r2 == ""
 
     def test_unescapes_newline(self) -> None:
@@ -84,6 +82,7 @@ class TestJsonAnswerExtractor:
 
 
 # ── /query endpoint tests ─────────────────────────────────────────────────────
+
 
 def _admin_claims() -> dict:
     return {"roles": ["admin"], "oid": "test-oid", "name": "Test Admin"}
@@ -118,7 +117,9 @@ def _make_chain_end_event(node: str, citations: list, trace_id: str) -> dict:
     }
 
 
-async def _fake_astream_events(initial_state: dict, version: str):
+async def _fake_astream_events(
+    initial_state: dict[str, object], version: str
+) -> AsyncGenerator[dict[str, object], None]:
     """Yields a controlled event sequence simulating a successful agent run."""
     # Planner + retriever events (no streaming content)
     yield _make_mock_event("on_chain_start", "planner")
@@ -136,11 +137,17 @@ async def _fake_astream_events(initial_state: dict, version: str):
     yield _make_chain_end_event("synthesizer", [], "trace-abc-123")
 
 
-async def _fake_astream_events_error(initial_state: dict, version: str):
+async def _fake_astream_events_error(
+    initial_state: dict[str, object], version: str
+) -> AsyncGenerator[dict[str, object], None]:
     """Simulates a graph error mid-stream."""
     yield _make_mock_event("on_chain_start", "planner")
     raise RuntimeError("Simulated graph failure")
-    yield  # make it an async generator  # noqa: unreachable
+
+
+def _parse_sse(text: str) -> list[dict]:  # type: ignore[type-arg]
+    """Parse SSE response body into a list of event dicts."""
+    return [json.loads(ln[6:]) for ln in text.split("\n") if ln.startswith("data:")]
 
 
 class TestQueryEndpointStreaming:
@@ -162,8 +169,7 @@ class TestQueryEndpointStreaming:
         with patch("api.routers.query.graph") as mock_graph:
             mock_graph.astream_events = _fake_astream_events
             response = self._client().post("/query", json={"query": "What is the policy?"})
-        lines = [l for l in response.text.split("\n") if l.startswith("data:")]
-        events = [json.loads(l[6:]) for l in lines]
+        events = _parse_sse(response.text)
         token_events = [e for e in events if e["type"] == "token"]
         assert len(token_events) > 0
 
@@ -171,8 +177,7 @@ class TestQueryEndpointStreaming:
         with patch("api.routers.query.graph") as mock_graph:
             mock_graph.astream_events = _fake_astream_events
             response = self._client().post("/query", json={"query": "What is the policy?"})
-        lines = [l for l in response.text.split("\n") if l.startswith("data:")]
-        events = [json.loads(l[6:]) for l in lines]
+        events = _parse_sse(response.text)
         assembled = "".join(e["content"] for e in events if e["type"] == "token")
         assert assembled == "The policy applies."
 
@@ -180,8 +185,7 @@ class TestQueryEndpointStreaming:
         with patch("api.routers.query.graph") as mock_graph:
             mock_graph.astream_events = _fake_astream_events
             response = self._client().post("/query", json={"query": "What is the policy?"})
-        lines = [l for l in response.text.split("\n") if l.startswith("data:")]
-        events = [json.loads(l[6:]) for l in lines]
+        events = _parse_sse(response.text)
         done_events = [e for e in events if e["type"] == "done"]
         assert len(done_events) == 1
 
@@ -189,8 +193,7 @@ class TestQueryEndpointStreaming:
         with patch("api.routers.query.graph") as mock_graph:
             mock_graph.astream_events = _fake_astream_events
             response = self._client().post("/query", json={"query": "What is the policy?"})
-        lines = [l for l in response.text.split("\n") if l.startswith("data:")]
-        events = [json.loads(l[6:]) for l in lines]
+        events = _parse_sse(response.text)
         done = next(e for e in events if e["type"] == "done")
         assert "trace_id" in done
         assert done["trace_id"] == "trace-abc-123"
@@ -199,8 +202,7 @@ class TestQueryEndpointStreaming:
         with patch("api.routers.query.graph") as mock_graph:
             mock_graph.astream_events = _fake_astream_events
             response = self._client().post("/query", json={"query": "What is the policy?"})
-        lines = [l for l in response.text.split("\n") if l.startswith("data:")]
-        events = [json.loads(l[6:]) for l in lines]
+        events = _parse_sse(response.text)
         done = next(e for e in events if e["type"] == "done")
         assert done["latency_ms"] >= 0
 
@@ -228,8 +230,7 @@ class TestQueryEndpointStreaming:
         with patch("api.routers.query.graph") as mock_graph:
             mock_graph.astream_events = _fake_astream_events_error
             response = self._client().post("/query", json={"query": "q"})
-        lines = [l for l in response.text.split("\n") if l.startswith("data:")]
-        events = [json.loads(l[6:]) for l in lines]
+        events = _parse_sse(response.text)
         error_events = [e for e in events if e["type"] == "error"]
         assert len(error_events) == 1
         assert "Simulated graph failure" in error_events[0]["message"]
@@ -250,52 +251,87 @@ class TestQueryEndpointStreaming:
 class TestCheckEvalThresholds:
     def test_passing_thresholds(self, tmp_path) -> None:
         from scripts.check_eval_thresholds import check_thresholds
+
         results_file = tmp_path / "eval_pass.json"
-        results_file.write_text(json.dumps({
-            "incorrect_refusal_rate": 0.10,
-            "p95_latency_ms": 5000.0,
-        }))
-        violations = check_thresholds(results_file, max_incorrect_refusal=0.40, max_p95_latency=30_000)
+        results_file.write_text(
+            json.dumps(
+                {
+                    "incorrect_refusal_rate": 0.10,
+                    "p95_latency_ms": 5000.0,
+                }
+            )
+        )
+        violations = check_thresholds(
+            results_file, max_incorrect_refusal=0.40, max_p95_latency=30_000
+        )
         assert violations == []
 
     def test_incorrect_refusal_violation(self, tmp_path) -> None:
         from scripts.check_eval_thresholds import check_thresholds
+
         results_file = tmp_path / "eval_fail.json"
-        results_file.write_text(json.dumps({
-            "incorrect_refusal_rate": 0.50,
-            "p95_latency_ms": 5000.0,
-        }))
-        violations = check_thresholds(results_file, max_incorrect_refusal=0.40, max_p95_latency=30_000)
+        results_file.write_text(
+            json.dumps(
+                {
+                    "incorrect_refusal_rate": 0.50,
+                    "p95_latency_ms": 5000.0,
+                }
+            )
+        )
+        violations = check_thresholds(
+            results_file, max_incorrect_refusal=0.40, max_p95_latency=30_000
+        )
         assert len(violations) == 1
         assert "incorrect_refusal_rate" in violations[0]
 
     def test_latency_violation(self, tmp_path) -> None:
         from scripts.check_eval_thresholds import check_thresholds
+
         results_file = tmp_path / "eval_lat.json"
-        results_file.write_text(json.dumps({
-            "incorrect_refusal_rate": 0.10,
-            "p95_latency_ms": 35_000.0,
-        }))
-        violations = check_thresholds(results_file, max_incorrect_refusal=0.40, max_p95_latency=30_000)
+        results_file.write_text(
+            json.dumps(
+                {
+                    "incorrect_refusal_rate": 0.10,
+                    "p95_latency_ms": 35_000.0,
+                }
+            )
+        )
+        violations = check_thresholds(
+            results_file, max_incorrect_refusal=0.40, max_p95_latency=30_000
+        )
         assert len(violations) == 1
         assert "p95_latency_ms" in violations[0]
 
     def test_both_violations(self, tmp_path) -> None:
         from scripts.check_eval_thresholds import check_thresholds
+
         results_file = tmp_path / "eval_both.json"
-        results_file.write_text(json.dumps({
-            "incorrect_refusal_rate": 0.60,
-            "p95_latency_ms": 50_000.0,
-        }))
-        violations = check_thresholds(results_file, max_incorrect_refusal=0.40, max_p95_latency=30_000)
+        results_file.write_text(
+            json.dumps(
+                {
+                    "incorrect_refusal_rate": 0.60,
+                    "p95_latency_ms": 50_000.0,
+                }
+            )
+        )
+        violations = check_thresholds(
+            results_file, max_incorrect_refusal=0.40, max_p95_latency=30_000
+        )
         assert len(violations) == 2
 
     def test_at_exact_boundary_passes(self, tmp_path) -> None:
         from scripts.check_eval_thresholds import check_thresholds
+
         results_file = tmp_path / "eval_boundary.json"
-        results_file.write_text(json.dumps({
-            "incorrect_refusal_rate": 0.40,
-            "p95_latency_ms": 30_000.0,
-        }))
-        violations = check_thresholds(results_file, max_incorrect_refusal=0.40, max_p95_latency=30_000)
+        results_file.write_text(
+            json.dumps(
+                {
+                    "incorrect_refusal_rate": 0.40,
+                    "p95_latency_ms": 30_000.0,
+                }
+            )
+        )
+        violations = check_thresholds(
+            results_file, max_incorrect_refusal=0.40, max_p95_latency=30_000
+        )
         assert violations == []

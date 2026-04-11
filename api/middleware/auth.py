@@ -12,12 +12,11 @@ Run challenge mode after any change:
 """
 
 from fastapi import HTTPException, Request, status
-from msal import ConfidentialClientApplication
 
-from api.config import get_settings
+from api.config import Settings, get_settings
 
 
-async def validate_token(request: Request) -> dict:
+async def validate_token(request: Request) -> dict[str, object]:
     """
     Extract and validate Bearer token from Authorization header.
     Returns decoded claims dict with oid, roles, and name.
@@ -37,7 +36,7 @@ async def validate_token(request: Request) -> dict:
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    token = auth_header[len("Bearer "):]
+    token = auth_header[len("Bearer ") :]
 
     # Validate token against Entra ID authority
     # TODO: implement full MSAL token validation
@@ -55,7 +54,7 @@ async def validate_token(request: Request) -> dict:
     return claims
 
 
-def _validate_jwt(token: str, settings) -> dict | None:
+def _validate_jwt(token: str, settings: "Settings") -> dict[str, object] | None:
     """
     Stub: replace with full MSAL token validation.
     Must check: signature, expiry, audience, issuer.

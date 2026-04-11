@@ -6,6 +6,7 @@ All endpoints require auth except /health. ADR (auth middleware).
 RBAC enforced per endpoint capability. ADR-002.
 """
 
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -16,7 +17,7 @@ from api.routers import health, ingest, query
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Startup and shutdown lifecycle."""
     settings = get_settings()
     # TODO: warm up Azure AI Search client
@@ -48,5 +49,5 @@ app.add_middleware(
 )
 
 app.include_router(health.router, tags=["health"])
-app.include_router(query.router,  tags=["query"])
+app.include_router(query.router, tags=["query"])
 app.include_router(ingest.router, tags=["ingest"])
